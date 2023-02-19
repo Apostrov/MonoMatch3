@@ -26,7 +26,7 @@ public class PlayerClickedProcessing : IEcsInitSystem, IEcsRunSystem
         _pieces = _world.Filter<Components.GamePiece>().End();
         _selected = _world.Filter<Components.Selected>().End();
         _swapWait = _world.Filter<Components.SwapWith>().End();
-        
+
         _piecePool = _world.GetPool<Components.GamePiece>();
         _selectedPool = _world.GetPool<Components.Selected>();
         _swap = _world.GetPool<Components.SwapWith>();
@@ -34,9 +34,9 @@ public class PlayerClickedProcessing : IEcsInitSystem, IEcsRunSystem
 
     public void Run(IEcsSystems systems)
     {
-        if(_swapWait.GetEntitiesCount() > 0)
+        if (_swapWait.GetEntitiesCount() > 0)
             return;
-        
+
         var mouseState = MouseExtended.GetState();
         if (!mouseState.WasButtonJustUp(MouseButton.Left))
             return;
@@ -61,12 +61,13 @@ public class PlayerClickedProcessing : IEcsInitSystem, IEcsRunSystem
                     _swap.Add(pieceEntity);
                     continue;
                 }
-                
-                var transform = gamePiece.Transform;
+
                 ref var selected = ref _selectedPool.Add(pieceEntity);
-                selected.AnimationTween = _shared.Tweener.TweenTo(target: transform,
+                selected.AnimationTween = _shared.Tweener.TweenTo(target: gamePiece.Transform,
                             expression: t => t.Scale,
-                            toValue: new Vector2(0.6f, 0.6f), duration: 0.75f)
+                            toValue: new Vector2(GameConfig.SELECTED_ANIMATION_SHRINK,
+                                GameConfig.SELECTED_ANIMATION_SHRINK),
+                            duration: GameConfig.SELECTED_ANIMATION_TIME)
                         .RepeatForever()
                         .AutoReverse()
                         .Easing(EasingFunctions.Linear)

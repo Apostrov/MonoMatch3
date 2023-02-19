@@ -40,9 +40,11 @@ public class SwapPiecesProcessing : IEcsInitSystem, IEcsRunSystem
             foreach (var swapEntity in _swapPiece)
             {
                 ref var secondPiece = ref _piecePool.Get(swapEntity);
-                (secondPiece.Transform.Position, firstPiece.Transform.Position) =
-                    (firstPiece.Transform.Position, secondPiece.Transform.Position);
-                _swapPool.Del(swapEntity);
+                _shared.Tweener.TweenTo(target: secondPiece.Transform, expression: t => t.Position,
+                        toValue: firstPiece.Transform.Position, duration: GameConfig.SWAP_ANIMATION_TIME)
+                    .OnEnd(_ => _swapPool.Del(swapEntity));
+                _shared.Tweener.TweenTo(target: firstPiece.Transform, expression: t => t.Position,
+                    toValue: secondPiece.Transform.Position, duration: GameConfig.SWAP_ANIMATION_TIME);
             }
 
             _selectedPool.Get(selectedEntity).AnimationTween.Cancel();
