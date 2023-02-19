@@ -1,4 +1,5 @@
 ﻿using MonoGame.Extended;
+using MonoGame.Extended.Tweening;
 
 namespace MonoMatch3.Code.GameLogic.Components;
 
@@ -25,6 +26,7 @@ public struct GamePieceType
     public PieceType Type;
 }
 
-public struct Clicked
+public struct Selected
 {
+    public Tween AnimationTween;
 }

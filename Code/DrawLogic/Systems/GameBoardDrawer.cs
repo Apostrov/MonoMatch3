@@ -13,7 +13,6 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
     private EcsPool<GameLogic.Components.GameBoard> _gameBoardPool;
     private EcsPool<GameLogic.Components.GamePieceType> _typePool;
     private EcsPool<GameLogic.Components.GamePiece> _piecePool;
-    private EcsPool<GameLogic.Components.Clicked> _clickedPool;
 
     private SharedData _shared;
     private EcsWorld _world;
@@ -35,7 +34,6 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
         _gameBoardPool = _world.GetPool<GameLogic.Components.GameBoard>();
         _typePool = _world.GetPool<GameLogic.Components.GamePieceType>();
         _piecePool = _world.GetPool<GameLogic.Components.GamePiece>();
-        _clickedPool = _world.GetPool<GameLogic.Components.Clicked>();
 
         // atlas related 
         _tileSize.X = _shared.TilesAtlas.Width / ATLAS_SIZE;
@@ -78,11 +76,8 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
                     var pieceEntityPacked = gameBoard.Board[row, column];
                     if (pieceEntityPacked.Unpack(_world, out var pieceEntity))
                     {
-                        
                         ref var type = ref _typePool.Get(pieceEntity);
                         ref var piece = ref _piecePool.Get(pieceEntity);
-                        if (_clickedPool.Has(pieceEntity))
-                            piece.Transform.Scale = new Vector2(0.5f, 0.5f);
                         piece.Transform.Position = position;
                         piece.Radius = _tileSize.X / 2f;
                         _shared.SpriteBatch.Draw(_tiles[type.Type], piece.Transform);
