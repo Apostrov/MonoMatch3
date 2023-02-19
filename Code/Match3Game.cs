@@ -8,7 +8,7 @@ namespace MonoMatch3.Code
     public class Match3Game : Game
     {
         private const int BOARD_SIZE = 8;
-        
+
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -41,6 +41,7 @@ namespace MonoMatch3.Code
 
             _gameSystems
                 .Add(new GameLogic.Systems.GameBoardInit(BOARD_SIZE))
+                .Add(new GameLogic.Systems.PlayerClickedProcessing())
                 .Init();
 
             base.Initialize();
@@ -54,7 +55,7 @@ namespace MonoMatch3.Code
             _sharedData.SpriteBatch = _spriteBatch;
             _sharedData.Background = Content.Load<Texture2D>("background_blur");
             _sharedData.TilesAtlas = Content.Load<Texture2D>("assets_candy");
-            
+
             _drawSystems
                 .Add(new DrawLogic.Systems.BackgroundDrawer())
                 .Add(new DrawLogic.Systems.GameBoardDrawer())

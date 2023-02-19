@@ -8,6 +8,11 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
 {
     private EcsFilter _gameBoard;
 
+    private EcsPool<GameLogic.Components.GameBoard> _gameBoardPool;
+    private EcsPool<GameLogic.Components.GamePieceType> _typePool;
+    private EcsPool<GameLogic.Components.GamePiecePosition> _positionPool;
+    private EcsPool<GameLogic.Components.Clicked> _clickedPool;
+
     private SharedData _shared;
     private EcsWorld _world;
     private Rectangle _backgroundRect;
@@ -23,6 +28,13 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
         _world = systems.GetWorld();
         _gameBoard = _world.Filter<GameLogic.Components.GameBoard>().End();
 
+        // pools
+        _gameBoardPool = _world.GetPool<GameLogic.Components.GameBoard>();
+        _typePool = _world.GetPool<GameLogic.Components.GamePieceType>();
+        _positionPool = _world.GetPool<GameLogic.Components.GamePiecePosition>();
+        _clickedPool = _world.GetPool<GameLogic.Components.Clicked>();
+
+        // atlas related 
         int width = _shared.TilesAtlas.Width / ATLAS_SIZE;
         int height = _shared.TilesAtlas.Height / ATLAS_SIZE;
         _backgroundRect = new Rectangle(0, height * BACKGROUND_INDEX, width, height);
@@ -37,14 +49,9 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
     {
         _shared.SpriteBatch.Begin();
 
-        // pools
-        var gameBoardPool = _world.GetPool<GameLogic.Components.GameBoard>();
-        var typePool = _world.GetPool<GameLogic.Components.GamePieceType>();
-        var positionPool = _world.GetPool<GameLogic.Components.GamePiecePosition>();
-
         foreach (var boardEntity in _gameBoard)
         {
-            ref var gameBoard = ref gameBoardPool.Get(boardEntity);
+            ref var gameBoard = ref _gameBoardPool.Get(boardEntity);
             var boardSize = gameBoard.Board.GetLength(0);
 
             // Calculate the position of the top-left corner of the grid
@@ -71,8 +78,10 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
                     var pieceEntityPacked = gameBoard.Board[row, column];
                     if (pieceEntityPacked.Unpack(_world, out var pieceEntity))
                     {
-                        ref var type = ref typePool.Get(pieceEntity);
-                        positionPool.Get(pieceEntity).DrawnPosition = destinationRect;
+                        if(_clickedPool.Has(pieceEntity))
+                            continue;
+                        ref var type = ref _typePool.Get(pieceEntity);
+                        _positionPool.Get(pieceEntity).DrawnPosition = destinationRect;
                         _shared.SpriteBatch.Draw(_shared.TilesAtlas, destinationRect, _tilesRect[type.Type],
                             Color.White);
                     }

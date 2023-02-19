@@ -24,6 +24,6 @@ public struct GamePieceType
     public PieceType Type;
 }
 
-public struct ClickedTag
+public struct Clicked
 {
 }
