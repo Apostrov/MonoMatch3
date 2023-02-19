@@ -7,6 +7,8 @@ namespace MonoMatch3.Code
 {
     public class Match3Game : Game
     {
+        private const int BOARD_SIZE = 8;
+        
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -38,9 +40,7 @@ namespace MonoMatch3.Code
             // TODO: Add your initialization logic here
 
             _gameSystems
-                .Init();
-            _drawSystems
-                .Add(new DrawLogic.Systems.BackgroundDrawer())
+                .Add(new GameLogic.Systems.GameBoardInit(BOARD_SIZE))
                 .Init();
 
             base.Initialize();
@@ -54,6 +54,11 @@ namespace MonoMatch3.Code
             _sharedData.SpriteBatch = _spriteBatch;
             _sharedData.Background = Content.Load<Texture2D>("background_blur");
             _sharedData.TilesAtlas = Content.Load<Texture2D>("assets_candy");
+            
+            _drawSystems
+                .Add(new DrawLogic.Systems.BackgroundDrawer())
+                .Add(new DrawLogic.Systems.GameBoardDrawer())
+                .Init();
         }
 
         protected override void UnloadContent()
@@ -79,7 +84,7 @@ namespace MonoMatch3.Code
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             // TODO: Add your drawing code here
             _drawSystems.Run();

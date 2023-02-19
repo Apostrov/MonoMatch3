@@ -5,17 +5,17 @@ namespace MonoMatch3.Code.DrawLogic.Systems;
 
 public class BackgroundDrawer : IEcsInitSystem, IEcsRunSystem
 {
-    private SharedData _sharedData;
+    private SharedData _shared;
 
     public void Init(IEcsSystems systems)
     {
-        _sharedData = systems.GetShared<SharedData>();
+        _shared = systems.GetShared<SharedData>();
     }
 
     public void Run(IEcsSystems systems)
     {
-        _sharedData.SpriteBatch.Begin();
-        _sharedData.SpriteBatch.Draw(_sharedData.Background, _sharedData.GraphicsDevice.Viewport.Bounds, Color.White);
-        _sharedData.SpriteBatch.End();
+        _shared.SpriteBatch.Begin();
+        _shared.SpriteBatch.Draw(_shared.Background, _shared.GraphicsDevice.Viewport.Bounds, Color.White);
+        _shared.SpriteBatch.End();
     }
 }
