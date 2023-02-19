@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended;
+using MonoGame.Extended.Tweening;
 
 namespace MonoMatch3.Code
 {
@@ -22,14 +24,15 @@ namespace MonoMatch3.Code
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-            _graphics.PreferredBackBufferWidth = 1280;
-            _graphics.PreferredBackBufferHeight = 720;
+            _graphics.PreferredBackBufferWidth = 1366;
+            _graphics.PreferredBackBufferHeight = 900;
             _graphics.ApplyChanges();
 
             _world = new EcsWorld();
             _sharedData = new SharedData
             {
-                GraphicsDevice = GraphicsDevice
+                GraphicsDevice = GraphicsDevice,
+                Tweener = new Tweener()
             };
             _gameSystems = new EcsSystems(_world, _sharedData);
             _drawSystems = new EcsSystems(_world, _sharedData);
@@ -79,6 +82,7 @@ namespace MonoMatch3.Code
 
             // TODO: Add your update logic here
             _gameSystems.Run();
+            _sharedData.Tweener.Update(gameTime.GetElapsedSeconds());
 
             base.Update(gameTime);
         }

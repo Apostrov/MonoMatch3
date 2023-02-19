@@ -1,12 +1,13 @@
-﻿using Microsoft.Xna.Framework;
+﻿using MonoGame.Extended;
 
 namespace MonoMatch3.Code.GameLogic.Components;
 
-public struct GamePiecePosition
+public struct GamePiece
 {
     public int Row;
     public int Column;
-    public Rectangle DrawnPosition;
+    public Transform2 Transform;
+    public float Radius;
 }
 
 public enum PieceType

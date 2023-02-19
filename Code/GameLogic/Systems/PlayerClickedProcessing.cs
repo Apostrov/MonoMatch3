@@ -9,7 +9,7 @@ public class PlayerClickedProcessing : IEcsInitSystem, IEcsRunSystem
 {
     private EcsFilter _piecePositions;
 
-    private EcsPool<Components.GamePiecePosition> _positionPool;
+    private EcsPool<Components.GamePiece> _piecePool;
     private EcsPool<Components.Clicked> _clickedPool;
 
     private EcsWorld _world;
@@ -20,8 +20,8 @@ public class PlayerClickedProcessing : IEcsInitSystem, IEcsRunSystem
         _world = systems.GetWorld();
         _shared = systems.GetShared<SharedData>();
 
-        _piecePositions = _world.Filter<Components.GamePiecePosition>().End();
-        _positionPool = _world.GetPool<Components.GamePiecePosition>();
+        _piecePositions = _world.Filter<Components.GamePiece>().End();
+        _piecePool = _world.GetPool<Components.GamePiece>();
         _clickedPool = _world.GetPool<Components.Clicked>();
     }
 
@@ -31,11 +31,12 @@ public class PlayerClickedProcessing : IEcsInitSystem, IEcsRunSystem
         if (mouseState.LeftButton != ButtonState.Pressed)
             return;
 
-        var clickedPoint = new Point(mouseState.X, mouseState.Y);
+        var mousePosition = new Vector2(mouseState.X, mouseState.Y);
         foreach (var pieceEntity in _piecePositions)
         {
-            ref var position = ref _positionPool.Get(pieceEntity);
-            if (position.DrawnPosition.Contains(clickedPoint))
+            ref var gamePiece = ref _piecePool.Get(pieceEntity);
+            if (Vector2.DistanceSquared(mousePosition, gamePiece.Transform.Position) <
+                gamePiece.Radius * gamePiece.Radius)
             {
                 if (_clickedPool.Has(pieceEntity))
                     continue;

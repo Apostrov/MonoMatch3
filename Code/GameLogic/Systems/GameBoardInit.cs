@@ -1,14 +1,21 @@
 ﻿using System;
 using Leopotam.EcsLite;
+using Microsoft.Xna.Framework;
+using MonoGame.Extended;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
 public class GameBoardInit : IEcsInitSystem
 {
+    private EcsPool<Components.GameBoard> _gameBoardPool;
+    private EcsPool<Components.GamePiece> _piecePool;
+    private EcsPool<Components.GamePieceType> _typePool;
+
+    private EcsWorld _world;
+
     private readonly int _boardSize;
     private readonly Random _random;
 
-    private EcsWorld _world;
 
     public GameBoardInit(int boardSize)
     {
@@ -28,11 +35,11 @@ public class GameBoardInit : IEcsInitSystem
             }
         }
 
-        var gameBoardPool = _world.GetPool<Components.GameBoard>();
-        var positionPool = _world.GetPool<Components.GamePiecePosition>();
-        var typePool = _world.GetPool<Components.GamePieceType>();
+        _gameBoardPool = _world.GetPool<Components.GameBoard>();
+        _piecePool = _world.GetPool<Components.GamePiece>();
+        _typePool = _world.GetPool<Components.GamePieceType>();
 
-        ref var gameBoard = ref gameBoardPool.Add(_world.NewEntity());
+        ref var gameBoard = ref _gameBoardPool.Add(_world.NewEntity());
         gameBoard.Board = new EcsPackedEntity[_boardSize, _boardSize];
 
         for (int row = 0; row < _boardSize; row++)
@@ -41,12 +48,13 @@ public class GameBoardInit : IEcsInitSystem
             {
                 var pieceEntity = _world.NewEntity();
 
-                ref var positionComponent = ref positionPool.Add(pieceEntity);
-                positionComponent.Column = column;
-                positionComponent.Row = row;
+                ref var piece = ref _piecePool.Add(pieceEntity);
+                piece.Column = column;
+                piece.Row = row;
+                piece.Transform = new Transform2();
 
-                ref var typeComponent = ref typePool.Add(pieceEntity);
-                typeComponent.Type = GetRandomType();
+                ref var type = ref _typePool.Add(pieceEntity);
+                type.Type = GetRandomType();
 
                 gameBoard.Board[row, column] = _world.PackEntity(pieceEntity);
             }
