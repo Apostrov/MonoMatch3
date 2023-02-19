@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using Leopotam.EcsLite;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
@@ -34,7 +33,7 @@ public class GameBoardInit : IEcsInitSystem
         var typePool = _world.GetPool<Components.GamePieceType>();
 
         ref var gameBoard = ref gameBoardPool.Add(_world.NewEntity());
-        gameBoard.Board = new int[_boardSize, _boardSize];
+        gameBoard.Board = new EcsPackedEntity[_boardSize, _boardSize];
 
         for (int row = 0; row < _boardSize; row++)
         {
@@ -49,7 +48,7 @@ public class GameBoardInit : IEcsInitSystem
                 ref var typeComponent = ref typePool.Add(pieceEntity);
                 typeComponent.Type = GetRandomType();
 
-                gameBoard.Board[row, column] = pieceEntity;
+                gameBoard.Board[row, column] = _world.PackEntity(pieceEntity);
             }
         }
     }

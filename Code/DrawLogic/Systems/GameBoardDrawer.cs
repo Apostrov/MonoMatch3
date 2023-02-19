@@ -40,6 +40,7 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
         // pools
         var gameBoardPool = _world.GetPool<GameLogic.Components.GameBoard>();
         var typePool = _world.GetPool<GameLogic.Components.GamePieceType>();
+        var positionPool = _world.GetPool<GameLogic.Components.GamePiecePosition>();
 
         foreach (var boardEntity in _gameBoard)
         {
@@ -67,9 +68,14 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
                     _shared.SpriteBatch.Draw(_shared.TilesAtlas, destinationRect, _backgroundRect, Color.White);
 
                     // piece
-                    var pieceEntity = gameBoard.Board[row, column];
-                    ref var type = ref typePool.Get(pieceEntity);
-                    _shared.SpriteBatch.Draw(_shared.TilesAtlas, destinationRect, _tilesRect[type.Type], Color.White);
+                    var pieceEntityPacked = gameBoard.Board[row, column];
+                    if (pieceEntityPacked.Unpack(_world, out var pieceEntity))
+                    {
+                        ref var type = ref typePool.Get(pieceEntity);
+                        positionPool.Get(pieceEntity).DrawnPosition = destinationRect;
+                        _shared.SpriteBatch.Draw(_shared.TilesAtlas, destinationRect, _tilesRect[type.Type],
+                            Color.White);
+                    }
                 }
             }
         }

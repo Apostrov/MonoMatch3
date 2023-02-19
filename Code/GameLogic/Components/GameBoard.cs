@@ -1,6 +1,8 @@
-﻿namespace MonoMatch3.Code.GameLogic.Components;
+﻿using Leopotam.EcsLite;
+
+namespace MonoMatch3.Code.GameLogic.Components;
 
 public struct GameBoard
 {
-    public int[,] Board;
+    public EcsPackedEntity[,] Board;
 }

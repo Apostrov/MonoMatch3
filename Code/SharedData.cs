@@ -4,6 +4,7 @@ namespace MonoMatch3.Code;
 
 public class SharedData
 {
+    // draw logic
     public GraphicsDevice GraphicsDevice;
     public SpriteBatch SpriteBatch;
     public Texture2D Background;
