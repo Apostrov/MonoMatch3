@@ -1,4 +1,5 @@
-﻿using Leopotam.EcsLite;
+﻿using System;
+using Leopotam.EcsLite;
 using Microsoft.Xna.Framework;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
@@ -40,6 +41,14 @@ public class SwapPiecesProcessing : IEcsInitSystem, IEcsRunSystem
             foreach (var swapEntity in _swapPiece)
             {
                 ref var secondPiece = ref _piecePool.Get(swapEntity);
+                if (!CanSwap(firstPiece.Row, firstPiece.Column, secondPiece.Row, secondPiece.Column))
+                {
+                    _swapPool.Del(swapEntity);
+                    continue;
+                }
+                (secondPiece.Row, firstPiece.Row) = (firstPiece.Row, secondPiece.Row);
+                (secondPiece.Column, firstPiece.Column) = (firstPiece.Column, secondPiece.Column);
+                
                 _shared.Tweener.TweenTo(target: secondPiece.Transform, expression: t => t.Position,
                         toValue: firstPiece.Transform.Position, duration: GameConfig.SWAP_ANIMATION_TIME)
                     .OnEnd(_ => _swapPool.Del(swapEntity));
@@ -51,5 +60,13 @@ public class SwapPiecesProcessing : IEcsInitSystem, IEcsRunSystem
             _selectedPool.Del(selectedEntity);
             firstPiece.Transform.Scale = Vector2.One;
         }
+    }
+
+    private bool CanSwap(int row1, int column1, int row2, int column2)
+    {
+        if (Math.Abs(row1 - row2) == 0)
+            return Math.Abs(column1 - column2) == 1;
+
+        return Math.Abs(column1 - column2) == 0 && Math.Abs(row1 - row2) == 1;
     }
 }
