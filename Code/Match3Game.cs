@@ -32,7 +32,8 @@ namespace MonoMatch3.Code
             _sharedData = new SharedData
             {
                 GraphicsDevice = GraphicsDevice,
-                Tweener = new Tweener()
+                Tweener = new Tweener(),
+                BoardSize = BOARD_SIZE
             };
             _gameSystems = new EcsSystems(_world, _sharedData);
             _drawSystems = new EcsSystems(_world, _sharedData);
@@ -43,7 +44,6 @@ namespace MonoMatch3.Code
             // TODO: Add your initialization logic here
 
             _gameSystems
-                .Add(new GameLogic.Systems.GameBoardInit(BOARD_SIZE))
                 .Add(new GameLogic.Systems.PlayerClickedProcessing())
                 .Init();
 
@@ -60,8 +60,10 @@ namespace MonoMatch3.Code
             _sharedData.TilesAtlas = Content.Load<Texture2D>("assets_candy");
 
             _drawSystems
+                .Add(new GameLogic.Systems.GameBoardInit()) // in draw systems, because it depend on content
                 .Add(new DrawLogic.Systems.BackgroundDrawer())
                 .Add(new DrawLogic.Systems.GameBoardDrawer())
+                .Add(new DrawLogic.Systems.GamePieceDrawer())
                 .Init();
         }
 
@@ -81,6 +83,7 @@ namespace MonoMatch3.Code
                 Exit();
 
             // TODO: Add your update logic here
+            _sharedData.GameTime = gameTime;
             _gameSystems.Run();
             _sharedData.Tweener.Update(gameTime.GetElapsedSeconds());
 
@@ -92,6 +95,7 @@ namespace MonoMatch3.Code
             GraphicsDevice.Clear(Color.Black);
 
             // TODO: Add your drawing code here
+            _sharedData.GameTime = gameTime;
             _drawSystems.Run();
 
             base.Draw(gameTime);

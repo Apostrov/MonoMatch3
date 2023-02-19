@@ -28,5 +28,6 @@ public struct GamePieceType
 
 public struct Selected
 {
+    public float ClickedTime;
     public Tween AnimationTween;
 }

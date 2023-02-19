@@ -1,6 +1,7 @@
 ﻿using Leopotam.EcsLite;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended;
 using MonoGame.Extended.Input;
 using MonoGame.Extended.Tweening;
 
@@ -48,13 +49,15 @@ public class PlayerClickedProcessing : IEcsInitSystem, IEcsRunSystem
                 }
 
                 var transform = gamePiece.Transform;
-                _selectedPool.Add(pieceEntity).AnimationTween = _shared.Tweener.TweenTo(target: transform,
+                ref var selected = ref _selectedPool.Add(pieceEntity);
+                selected.AnimationTween = _shared.Tweener.TweenTo(target: transform,
                             expression: t => t.Scale,
                             toValue: new Vector2(0.6f, 0.6f), duration: 0.75f)
                         .RepeatForever()
                         .AutoReverse()
                         .Easing(EasingFunctions.Linear)
                     ;
+                selected.ClickedTime = _shared.GameTime.GetElapsedSeconds();
             }
         }
     }

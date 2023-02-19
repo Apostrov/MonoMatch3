@@ -1,6 +1,5 @@
 ﻿using System;
 using Leopotam.EcsLite;
-using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
@@ -12,20 +11,15 @@ public class GameBoardInit : IEcsInitSystem
     private EcsPool<Components.GamePieceType> _typePool;
 
     private EcsWorld _world;
-
-    private readonly int _boardSize;
-    private readonly Random _random;
-
-
-    public GameBoardInit(int boardSize)
-    {
-        _boardSize = boardSize;
-        _random = new Random();
-    }
+    private Random _random;
+    private SharedData _shared;
 
     public void Init(IEcsSystems systems)
     {
+        _random = new Random();
         _world = systems.GetWorld();
+        _shared = systems.GetShared<SharedData>();
+
         var existedBoards = _world.Filter<Components.GameBoard>().End();
         if (existedBoards.GetEntitiesCount() > 0)
         {
@@ -40,18 +34,22 @@ public class GameBoardInit : IEcsInitSystem
         _typePool = _world.GetPool<Components.GamePieceType>();
 
         ref var gameBoard = ref _gameBoardPool.Add(_world.NewEntity());
-        gameBoard.Board = new EcsPackedEntity[_boardSize, _boardSize];
+        gameBoard.Board = new EcsPackedEntity[_shared.BoardSize, _shared.BoardSize];
+        var tileSize = DrawLogic.DrawUtils.GetTileSize(_shared.TilesAtlas);
 
-        for (int row = 0; row < _boardSize; row++)
+        for (int row = 0; row < _shared.BoardSize; row++)
         {
-            for (int column = 0; column < _boardSize; column++)
+            for (int column = 0; column < _shared.BoardSize; column++)
             {
                 var pieceEntity = _world.NewEntity();
 
+                var position = DrawLogic.DrawUtils.GetTileScreenPosition(row, column, _shared.GraphicsDevice, tileSize,
+                    _shared.BoardSize);
                 ref var piece = ref _piecePool.Add(pieceEntity);
                 piece.Column = column;
                 piece.Row = row;
-                piece.Transform = new Transform2();
+                piece.Transform = new Transform2(position);
+                piece.Radius = tileSize.X / 2f;
 
                 ref var type = ref _typePool.Add(pieceEntity);
                 type.Type = GetRandomType();
