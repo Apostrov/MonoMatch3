@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Leopotam.EcsLite;
+using Microsoft.Xna.Framework;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
@@ -10,22 +10,24 @@ public class Match3Solver : IEcsInitSystem, IEcsRunSystem
     private EcsFilter _solveMatch;
 
     private EcsPool<Components.GameBoard> _gameBoardPool;
-    private EcsPool<Components.SolveMatch> _solveMatchPool;
+    private EcsPool<Components.SolvePieceMatch> _solveMatchPool;
     private EcsPool<Components.GamePiece> _piecePool;
     private EcsPool<Components.GamePieceType> _pieceTypePool;
     private EcsPool<Components.DestroyPiece> _destroyPool;
 
     private EcsWorld _world;
+    private SharedData _shared;
 
     public void Init(IEcsSystems systems)
     {
         _world = systems.GetWorld();
+        _shared = systems.GetShared<SharedData>();
 
         _gameBoard = _world.Filter<Components.GameBoard>().End();
-        _solveMatch = _world.Filter<Components.SolveMatch>().End();
+        _solveMatch = _world.Filter<Components.SolvePieceMatch>().End();
 
         _gameBoardPool = _world.GetPool<Components.GameBoard>();
-        _solveMatchPool = _world.GetPool<Components.SolveMatch>();
+        _solveMatchPool = _world.GetPool<Components.SolvePieceMatch>();
         _piecePool = _world.GetPool<Components.GamePiece>();
         _pieceTypePool = _world.GetPool<Components.GamePieceType>();
         _destroyPool = _world.GetPool<Components.DestroyPiece>();
@@ -39,28 +41,27 @@ public class Match3Solver : IEcsInitSystem, IEcsRunSystem
         foreach (var boardEntity in _gameBoard)
         {
             ref var board = ref _gameBoardPool.Get(boardEntity);
-            for (var i = 0; i < board.Board.GetLength(0); i++)
+            foreach (var solveEntity in _solveMatch)
             {
-                for (var j = 0; j < board.Board.GetLength(1); j++)
-                {
-                    var toDestroy = DfsSolver(board.Board[i, j], board.Board);
-                    if (toDestroy.Count > 2)
-                    {
-                        foreach (var destroyEntity in toDestroy)
-                        {
-                            if (destroyEntity.Unpack(_world, out var entity))
-                            {
-                                _destroyPool.Add(entity);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+                var toDestroy = DfsSolver(_solveMatchPool.Get(solveEntity).StartPiece, board.Board);
+                if (toDestroy.Count < GameConfig.MATCH_COUNT)
+                    continue;
 
-        foreach (var entity in _solveMatch)
-        {
-            _solveMatchPool.Del(entity);
+                foreach (var destroyPack in toDestroy)
+                {
+                    if (!destroyPack.Unpack(_world, out var entity))
+                        continue;
+
+                    ref var piece = ref _piecePool.Get(entity);
+                    _shared.Tweener.TweenTo(target: piece.Transform,
+                        expression: t => t.Scale,
+                        toValue: Vector2.Zero,
+                        duration: GameConfig.DESTROY_ANIMATION_TIME);
+                    _destroyPool.Add(entity);
+                }
+
+                _solveMatchPool.Del(solveEntity);
+            }
         }
     }
 
@@ -68,7 +69,7 @@ public class Match3Solver : IEcsInitSystem, IEcsRunSystem
     {
         if (!startBlock.Unpack(_world, out var startBlockEntity) || _destroyPool.Has(startBlockEntity))
             return new List<EcsPackedEntity>();
-        
+
         var toDestroy = new List<EcsPackedEntity>();
         var dfsStack = new Stack<(int row, int column)>();
         var discovered = new bool[board.GetLength(0), board.GetLength(1)];

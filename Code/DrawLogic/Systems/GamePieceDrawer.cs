@@ -49,8 +49,6 @@ public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
         {
             ref var type = ref _typePool.Get(pieceEntity);
             ref var piece = ref _piecePool.Get(pieceEntity);
-            if(_destroyPool.Has(pieceEntity))
-                piece.Transform.Scale = new Vector2(0.3f, 0.3f);
             _shared.SpriteBatch.Draw(_tiles[type.Type], piece.Transform);
         }
 

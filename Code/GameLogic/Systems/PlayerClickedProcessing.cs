@@ -23,7 +23,7 @@ public class PlayerClickedProcessing : IEcsInitSystem, IEcsRunSystem
         _world = systems.GetWorld();
         _shared = systems.GetShared<SharedData>();
 
-        _pieces = _world.Filter<Components.GamePiece>().End();
+        _pieces = _world.Filter<Components.GamePiece>().Exc<Components.DestroyPiece>().End();
         _selected = _world.Filter<Components.Selected>().End();
         _swapWait = _world.Filter<Components.SwapWith>().End();
 

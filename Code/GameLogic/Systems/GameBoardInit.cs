@@ -9,7 +9,7 @@ public class GameBoardInit : IEcsInitSystem
     private EcsPool<Components.GameBoard> _gameBoardPool;
     private EcsPool<Components.GamePiece> _piecePool;
     private EcsPool<Components.GamePieceType> _typePool;
-    private EcsPool<Components.SolveMatch> _solveMatch;
+    private EcsPool<Components.SolvePieceMatch> _solveMatch;
 
     private EcsWorld _world;
     private Random _random;
@@ -35,7 +35,7 @@ public class GameBoardInit : IEcsInitSystem
         _gameBoardPool = _world.GetPool<Components.GameBoard>();
         _piecePool = _world.GetPool<Components.GamePiece>();
         _typePool = _world.GetPool<Components.GamePieceType>();
-        _solveMatch = _world.GetPool<Components.SolveMatch>();
+        _solveMatch = _world.GetPool<Components.SolvePieceMatch>();
         
         // create board
         ref var gameBoard = ref _gameBoardPool.Add(_world.NewEntity());
@@ -60,12 +60,15 @@ public class GameBoardInit : IEcsInitSystem
                 ref var type = ref _typePool.Add(pieceEntity);
                 type.Type = GetRandomType();
 
-                gameBoard.Board[row, column] = _world.PackEntity(pieceEntity);
+                var entityPacked = _world.PackEntity(pieceEntity);
+                gameBoard.Board[row, column] = entityPacked;
+                
+                // solve match
+                _solveMatch.Add(_world.NewEntity()).StartPiece = entityPacked;
             }
         }
         
-        // solve match
-        _solveMatch.Add(_world.NewEntity());
+        
     }
 
     private Components.PieceType GetRandomType()
