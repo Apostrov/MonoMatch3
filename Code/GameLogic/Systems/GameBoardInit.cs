@@ -48,8 +48,8 @@ public class GameBoardInit : IEcsInitSystem
                     tileSize,
                     _shared.Value.BoardSize);
                 ref var piece = ref _piecePool.Value.Add(pieceEntity);
-                piece.Column = column;
-                piece.Row = row;
+                piece.BoardPosition.Column = column;
+                piece.BoardPosition.Row = row;
                 piece.Transform = new Transform2(position);
                 piece.Radius = tileSize.X / 2f;
 

@@ -5,10 +5,21 @@ namespace MonoMatch3.Code.GameLogic.Components;
 
 public struct GamePiece
 {
-    public int Row;
-    public int Column;
+    public Position BoardPosition;
     public Transform2 Transform;
     public float Radius;
+
+    public struct Position
+    {
+        public int Row;
+        public int Column;
+
+        public Position(int row, int column)
+        {
+            Row = row;
+            Column = column;
+        }
+    }
 }
 
 public enum PieceType

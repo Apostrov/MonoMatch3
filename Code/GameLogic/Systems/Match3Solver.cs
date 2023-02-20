@@ -9,7 +9,7 @@ public class Match3Solver : IEcsRunSystem
 {
     private readonly EcsFilterInject<Inc<Components.GameBoard>> _gameBoard = default;
     private readonly EcsFilterInject<Inc<Components.SolvePieceMatch>> _solveMatch = default;
-    
+
     private readonly EcsPoolInject<Components.SolvePieceMatch> _solveMatchPool = default;
     private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
     private readonly EcsPoolInject<Components.GamePieceType> _pieceTypePool = default;
@@ -56,30 +56,30 @@ public class Match3Solver : IEcsRunSystem
             return new List<EcsPackedEntity>();
 
         var toDestroy = new List<EcsPackedEntity>();
-        var dfsStack = new Stack<(int row, int column)>();
+        var dfsStack = new Stack<Components.GamePiece.Position>();
         var discovered = new bool[board.GetLength(0), board.GetLength(1)];
         var color = _pieceTypePool.Value.Get(startBlockEntity).Type;
         ref var piece = ref _piecePool.Value.Get(startBlockEntity);
-        dfsStack.Push((piece.Row, piece.Column));
+        dfsStack.Push(piece.BoardPosition);
         while (dfsStack.Count > 0)
         {
             var position = dfsStack.Pop();
-            if (position.row < 0 || position.column < 0 ||
-                position.row >= board.GetLength(0) || position.column >= board.GetLength(1) ||
-                discovered[position.row, position.column])
+            if (position.Row < 0 || position.Column < 0 ||
+                position.Row >= board.GetLength(0) || position.Column >= board.GetLength(1) ||
+                discovered[position.Row, position.Column])
                 continue;
 
-            var entityPacked = board[position.row, position.column];
+            var entityPacked = board[position.Row, position.Column];
             if (!entityPacked.Unpack(_world.Value, out var entity) || _destroyPool.Value.Has(entity) ||
                 _pieceTypePool.Value.Get(entity).Type != color)
                 continue;
 
             toDestroy.Add(entityPacked);
-            discovered[position.row, position.column] = true;
-            dfsStack.Push((position.row + 1, position.column));
-            dfsStack.Push((position.row, position.column + 1));
-            dfsStack.Push((position.row - 1, position.column));
-            dfsStack.Push((position.row, position.column - 1));
+            discovered[position.Row, position.Column] = true;
+            dfsStack.Push(new Components.GamePiece.Position(position.Row + 1, position.Column));
+            dfsStack.Push(new Components.GamePiece.Position(position.Row, position.Column + 1));
+            dfsStack.Push(new Components.GamePiece.Position(position.Row - 1, position.Column));
+            dfsStack.Push(new Components.GamePiece.Position(position.Row, position.Column - 1));
         }
 
         return toDestroy;

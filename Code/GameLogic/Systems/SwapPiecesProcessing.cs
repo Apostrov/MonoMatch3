@@ -25,14 +25,14 @@ public class SwapPiecesProcessing : IEcsRunSystem
             foreach (var swapEntity in _swapPiece.Value)
             {
                 ref var secondPiece = ref _swapPiece.Pools.Inc1.Get(swapEntity);
-                if (!CanSwap(firstPiece.Row, firstPiece.Column, secondPiece.Row, secondPiece.Column))
+                if (!CanSwap(firstPiece.BoardPosition, secondPiece.BoardPosition))
                 {
                     _swapPiece.Pools.Inc2.Del(swapEntity);
                     continue;
                 }
 
-                (secondPiece.Row, firstPiece.Row) = (firstPiece.Row, secondPiece.Row);
-                (secondPiece.Column, firstPiece.Column) = (firstPiece.Column, secondPiece.Column);
+                (secondPiece.BoardPosition, firstPiece.BoardPosition) =
+                    (firstPiece.BoardPosition, secondPiece.BoardPosition);
 
                 _shared.Value.Tweener.TweenTo(target: secondPiece.Transform, expression: t => t.Position,
                         toValue: firstPiece.Transform.Position, duration: GameConfig.SWAP_ANIMATION_TIME)
@@ -47,11 +47,11 @@ public class SwapPiecesProcessing : IEcsRunSystem
         }
     }
 
-    private bool CanSwap(int row1, int column1, int row2, int column2)
+    private bool CanSwap(Components.GamePiece.Position firstPiece, Components.GamePiece.Position secondPiece)
     {
-        if (Math.Abs(row1 - row2) == 0)
-            return Math.Abs(column1 - column2) == 1;
+        if (Math.Abs(firstPiece.Row - secondPiece.Row) == 0)
+            return Math.Abs(firstPiece.Column - secondPiece.Column) == 1;
 
-        return Math.Abs(column1 - column2) == 0 && Math.Abs(row1 - row2) == 1;
+        return Math.Abs(firstPiece.Column - secondPiece.Column) == 0 && Math.Abs(firstPiece.Row - secondPiece.Row) == 1;
     }
 }
