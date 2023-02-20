@@ -47,7 +47,7 @@ public class SwapPiecesProcessing : IEcsRunSystem
         }
     }
 
-    private bool CanSwap(Components.GamePiece.Position firstPiece, Components.GamePiece.Position secondPiece)
+    private bool CanSwap(PiecePosition firstPiece, PiecePosition secondPiece)
     {
         if (Math.Abs(firstPiece.Row - secondPiece.Row) == 0)
             return Math.Abs(firstPiece.Column - secondPiece.Column) == 1;

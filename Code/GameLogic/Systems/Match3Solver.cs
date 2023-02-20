@@ -28,35 +28,64 @@ public class Match3Solver : IEcsRunSystem
             ref var board = ref _gameBoard.Pools.Inc1.Get(boardEntity);
             foreach (var solveEntity in _solveMatch.Value)
             {
-                var toDestroy = DfsSolver(_solveMatchPool.Value.Get(solveEntity).StartPiece, board.Board);
-                if (toDestroy.Count < GameConfig.MATCH_COUNT)
-                    continue;
-
-                foreach (var destroyPack in toDestroy)
-                {
-                    if (!destroyPack.Unpack(_world.Value, out var entity))
-                        continue;
-
-                    ref var piece = ref _piecePool.Value.Get(entity);
-                    _shared.Value.Tweener.TweenTo(target: piece.Transform,
-                        expression: t => t.Scale,
-                        toValue: Vector2.Zero,
-                        duration: GameConfig.DESTROY_ANIMATION_TIME);
-                    _destroyPool.Value.Add(entity);
-                }
+                var rowToDestroy = RowDfsSolver(_solveMatchPool.Value.Get(solveEntity).StartPiece, board.Board);
+                var columnToDestroy = ColumnDfsSolver(_solveMatchPool.Value.Get(solveEntity).StartPiece, board.Board);
+                DestroyLine(rowToDestroy);
+                DestroyLine(columnToDestroy);
 
                 _solveMatchPool.Value.Del(solveEntity);
             }
         }
     }
 
-    private List<EcsPackedEntity> DfsSolver(EcsPackedEntity startBlock, EcsPackedEntity[,] board)
+    private void DestroyLine(List<EcsPackedEntity> line)
+    {
+        if (line.Count < GameConfig.MATCH_COUNT)
+            return;
+
+        foreach (var destroyPack in line)
+        {
+            if (!destroyPack.Unpack(_world.Value, out var entity) || _destroyPool.Value.Has(entity))
+                continue;
+
+            ref var piece = ref _piecePool.Value.Get(entity);
+            _shared.Value.Tweener.TweenTo(target: piece.Transform,
+                expression: t => t.Scale,
+                toValue: Vector2.Zero,
+                duration: GameConfig.DESTROY_ANIMATION_TIME);
+            _destroyPool.Value.Add(entity);
+        }
+    }
+
+
+    private List<EcsPackedEntity> RowDfsSolver(EcsPackedEntity startBlock, EcsPackedEntity[,] board)
+    {
+        return DfsSolver(startBlock, board,
+            (PiecePosition position, ref Stack<PiecePosition> add) =>
+            {
+                add.Push(new PiecePosition(position.Row + 1, position.Column));
+                add.Push(new PiecePosition(position.Row - 1, position.Column));
+            });
+    }
+
+    private List<EcsPackedEntity> ColumnDfsSolver(EcsPackedEntity startBlock, EcsPackedEntity[,] board)
+    {
+        return DfsSolver(startBlock, board,
+            (PiecePosition position, ref Stack<PiecePosition> add) =>
+            {
+                add.Push(new PiecePosition(position.Row, position.Column + 1));
+                add.Push(new PiecePosition(position.Row, position.Column - 1));
+            });
+    }
+
+    private List<EcsPackedEntity> DfsSolver(EcsPackedEntity startBlock, EcsPackedEntity[,] board,
+        GetNextPosition nextPosition)
     {
         if (!startBlock.Unpack(_world.Value, out var startBlockEntity) || _destroyPool.Value.Has(startBlockEntity))
             return new List<EcsPackedEntity>();
 
         var toDestroy = new List<EcsPackedEntity>();
-        var dfsStack = new Stack<Components.GamePiece.Position>();
+        var dfsStack = new Stack<PiecePosition>();
         var discovered = new bool[board.GetLength(0), board.GetLength(1)];
         var color = _pieceTypePool.Value.Get(startBlockEntity).Type;
         ref var piece = ref _piecePool.Value.Get(startBlockEntity);
@@ -76,12 +105,11 @@ public class Match3Solver : IEcsRunSystem
 
             toDestroy.Add(entityPacked);
             discovered[position.Row, position.Column] = true;
-            dfsStack.Push(new Components.GamePiece.Position(position.Row + 1, position.Column));
-            dfsStack.Push(new Components.GamePiece.Position(position.Row, position.Column + 1));
-            dfsStack.Push(new Components.GamePiece.Position(position.Row - 1, position.Column));
-            dfsStack.Push(new Components.GamePiece.Position(position.Row, position.Column - 1));
+            nextPosition(position, ref dfsStack);
         }
 
         return toDestroy;
     }
+
+    private delegate void GetNextPosition(PiecePosition position, ref Stack<PiecePosition> toAdd);
 }
