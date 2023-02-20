@@ -37,3 +37,10 @@
 /processorParam:TextureFormat=Color
 /build:background_blur.png
 
+#begin Debug.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Debug.spritefont
+

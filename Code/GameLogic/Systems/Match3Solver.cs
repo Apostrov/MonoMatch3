@@ -10,10 +10,10 @@ public class Match3Solver : IEcsRunSystem
     private readonly EcsFilterInject<Inc<Components.GameBoard>> _gameBoard = default;
     private readonly EcsFilterInject<Inc<Components.SolvePieceMatch>> _solveMatch = default;
 
-    private readonly EcsPoolInject<Components.SolvePieceMatch> _solveMatchPool = default;
     private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
     private readonly EcsPoolInject<Components.GamePieceType> _pieceTypePool = default;
     private readonly EcsPoolInject<Components.DestroyPiece> _destroyPool = default;
+    private readonly EcsPoolInject<Components.RearrangeBoard> _rearrangePool = default;
 
     private readonly EcsSharedInject<SharedData> _shared = default;
     private readonly EcsWorldInject _world = default;
@@ -28,12 +28,12 @@ public class Match3Solver : IEcsRunSystem
             ref var board = ref _gameBoard.Pools.Inc1.Get(boardEntity);
             foreach (var solveEntity in _solveMatch.Value)
             {
-                var rowToDestroy = RowDfsSolver(_solveMatchPool.Value.Get(solveEntity).StartPiece, board.Board);
-                var columnToDestroy = ColumnDfsSolver(_solveMatchPool.Value.Get(solveEntity).StartPiece, board.Board);
+                var rowToDestroy = RowDfsSolver(_solveMatch.Pools.Inc1.Get(solveEntity).StartPiece, board.Board);
+                var columnToDestroy = ColumnDfsSolver(_solveMatch.Pools.Inc1.Get(solveEntity).StartPiece, board.Board);
                 DestroyLine(rowToDestroy);
                 DestroyLine(columnToDestroy);
 
-                _solveMatchPool.Value.Del(solveEntity);
+                _solveMatch.Pools.Inc1.Del(solveEntity);
             }
         }
     }
@@ -54,6 +54,8 @@ public class Match3Solver : IEcsRunSystem
                 toValue: Vector2.Zero,
                 duration: GameConfig.DESTROY_ANIMATION_TIME);
             _destroyPool.Value.Add(entity);
+
+            _rearrangePool.Value.Add(_world.Value.NewEntity()).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
         }
     }
 

@@ -48,6 +48,7 @@ namespace MonoMatch3.Code
                 .Add(new GameLogic.Systems.Match3Solver())
                 .Add(new GameLogic.Systems.PlayerClickedProcessing())
                 .Add(new GameLogic.Systems.SwapPiecesProcessing())
+                .Add(new GameLogic.Systems.RearrangeBoardProcessing())
                 .Inject()
                 .Init();
 
@@ -62,6 +63,7 @@ namespace MonoMatch3.Code
             _sharedData.SpriteBatch = _spriteBatch;
             _sharedData.Background = Content.Load<Texture2D>("background_blur");
             _sharedData.TilesAtlas = Content.Load<Texture2D>("assets_candy");
+            _sharedData.DebugFont = Content.Load<SpriteFont>("Debug");
 
             _drawSystems
                 .Add(new GameLogic.Systems.GameBoardInit()) // in draw systems, because it depend on content

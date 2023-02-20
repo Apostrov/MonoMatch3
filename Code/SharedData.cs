@@ -11,6 +11,7 @@ public class SharedData
     public SpriteBatch SpriteBatch;
     public Texture2D Background;
     public Texture2D TilesAtlas;
+    public SpriteFont DebugFont;
 
     // game logic
     public Tweener Tweener;

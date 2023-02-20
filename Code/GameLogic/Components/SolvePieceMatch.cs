@@ -6,7 +6,3 @@ public struct SolvePieceMatch
 {
     public EcsPackedEntity StartPiece;
 }
-
-public struct MatchSolved
-{
-}

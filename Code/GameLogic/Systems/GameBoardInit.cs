@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using MonoGame.Extended;
@@ -45,8 +46,7 @@ public class GameBoardInit : IEcsInitSystem
                 var pieceEntity = _world.Value.NewEntity();
 
                 var position = DrawLogic.DrawUtils.GetTileScreenPosition(row, column, _shared.Value.GraphicsDevice,
-                    tileSize,
-                    _shared.Value.BoardSize);
+                    tileSize, _shared.Value.BoardSize);
                 ref var piece = ref _piecePool.Value.Add(pieceEntity);
                 piece.BoardPosition.Column = column;
                 piece.BoardPosition.Row = row;
