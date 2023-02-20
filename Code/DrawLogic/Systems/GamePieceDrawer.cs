@@ -9,11 +9,8 @@ namespace MonoMatch3.Code.DrawLogic.Systems;
 
 public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
 {
-    private readonly EcsFilterInject<Inc<GameLogic.Components.GamePiece>> _gamePieces = default;
-
-    private readonly EcsPoolInject<GameLogic.Components.GamePieceType> _typePool = default;
-    private readonly EcsPoolInject<GameLogic.Components.GamePiece> _piecePool = default;
-    private EcsPoolInject<GameLogic.Components.DestroyPiece> _destroyPool = default;
+    private readonly EcsFilterInject<Inc<GameLogic.Components.GamePiece, GameLogic.Components.GamePieceType>>
+        _gamePieces = default;
 
     private readonly EcsSharedInject<SharedData> _shared = default;
 
@@ -38,8 +35,8 @@ public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
 
         foreach (var pieceEntity in _gamePieces.Value)
         {
-            ref var type = ref _typePool.Value.Get(pieceEntity);
-            ref var piece = ref _piecePool.Value.Get(pieceEntity);
+            ref var piece = ref _gamePieces.Pools.Inc1.Get(pieceEntity);
+            ref var type = ref _gamePieces.Pools.Inc2.Get(pieceEntity);
             _shared.Value.SpriteBatch.Draw(_tiles[type.Type], piece.Transform);
         }
 

@@ -12,10 +12,6 @@ public class PlayerClickedProcessing : IEcsRunSystem
     private readonly EcsFilterInject<Inc<Components.Selected>> _selected = default;
     private readonly EcsFilterInject<Inc<Components.SwapWith>> _swapWait = default;
 
-    private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
-    private readonly EcsPoolInject<Components.Selected> _selectedPool = default;
-    private readonly EcsPoolInject<Components.SwapWith> _swap = default;
-
     private readonly EcsSharedInject<SharedData> _shared = default;
     private readonly EcsWorldInject _world = default;
 
@@ -31,25 +27,25 @@ public class PlayerClickedProcessing : IEcsRunSystem
         var mousePosition = new Vector2(mouseState.X, mouseState.Y);
         foreach (var pieceEntity in _pieces.Value)
         {
-            ref var gamePiece = ref _piecePool.Value.Get(pieceEntity);
+            ref var gamePiece = ref _pieces.Pools.Inc1.Get(pieceEntity);
             if (Vector2.DistanceSquared(mousePosition, gamePiece.Transform.Position) <
                 gamePiece.Radius * gamePiece.Radius)
             {
                 if (_selected.Value.GetEntitiesCount() > 0)
                 {
-                    if (_selectedPool.Value.Has(pieceEntity))
+                    if (_selected.Pools.Inc1.Has(pieceEntity))
                     {
-                        _selectedPool.Value.Get(pieceEntity).AnimationTween.Cancel();
-                        _selectedPool.Value.Del(pieceEntity);
+                        _selected.Pools.Inc1.Get(pieceEntity).AnimationTween.Cancel();
+                        _selected.Pools.Inc1.Del(pieceEntity);
                         gamePiece.Transform.Scale = Vector2.One;
                         continue;
                     }
 
-                    _swap.Value.Add(pieceEntity);
+                    _swapWait.Pools.Inc1.Add(pieceEntity);
                     continue;
                 }
 
-                ref var selected = ref _selectedPool.Value.Add(pieceEntity);
+                ref var selected = ref _selected.Pools.Inc1.Add(pieceEntity);
                 selected.AnimationTween = _shared.Value.Tweener.TweenTo(target: gamePiece.Transform,
                             expression: t => t.Scale,
                             toValue: new Vector2(GameConfig.SELECTED_ANIMATION_SHRINK,

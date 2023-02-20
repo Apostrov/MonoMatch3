@@ -10,10 +10,6 @@ public class SwapPiecesProcessing : IEcsRunSystem
     private readonly EcsFilterInject<Inc<Components.GamePiece, Components.Selected>> _selectedPiece = default;
     private readonly EcsFilterInject<Inc<Components.GamePiece, Components.SwapWith>> _swapPiece = default;
 
-    private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
-    private readonly EcsPoolInject<Components.Selected> _selectedPool = default;
-    private readonly EcsPoolInject<Components.SwapWith> _swapPool = default;
-
     private readonly EcsSharedInject<SharedData> _shared = default;
     private readonly EcsWorldInject _world = default;
 
@@ -24,14 +20,14 @@ public class SwapPiecesProcessing : IEcsRunSystem
 
         foreach (var selectedEntity in _selectedPiece.Value)
         {
-            ref var firstPiece = ref _piecePool.Value.Get(selectedEntity);
+            ref var firstPiece = ref _selectedPiece.Pools.Inc1.Get(selectedEntity);
 
             foreach (var swapEntity in _swapPiece.Value)
             {
-                ref var secondPiece = ref _piecePool.Value.Get(swapEntity);
+                ref var secondPiece = ref _swapPiece.Pools.Inc1.Get(swapEntity);
                 if (!CanSwap(firstPiece.Row, firstPiece.Column, secondPiece.Row, secondPiece.Column))
                 {
-                    _swapPool.Value.Del(swapEntity);
+                    _swapPiece.Pools.Inc2.Del(swapEntity);
                     continue;
                 }
 
@@ -40,13 +36,13 @@ public class SwapPiecesProcessing : IEcsRunSystem
 
                 _shared.Value.Tweener.TweenTo(target: secondPiece.Transform, expression: t => t.Position,
                         toValue: firstPiece.Transform.Position, duration: GameConfig.SWAP_ANIMATION_TIME)
-                    .OnEnd(_ => _swapPool.Value.Del(swapEntity));
+                    .OnEnd(_ => _swapPiece.Pools.Inc2.Del(swapEntity));
                 _shared.Value.Tweener.TweenTo(target: firstPiece.Transform, expression: t => t.Position,
                     toValue: secondPiece.Transform.Position, duration: GameConfig.SWAP_ANIMATION_TIME);
             }
 
-            _selectedPool.Value.Get(selectedEntity).AnimationTween.Cancel();
-            _selectedPool.Value.Del(selectedEntity);
+            _selectedPiece.Pools.Inc2.Get(selectedEntity).AnimationTween.Cancel();
+            _selectedPiece.Pools.Inc2.Del(selectedEntity);
             firstPiece.Transform.Scale = Vector2.One;
         }
     }

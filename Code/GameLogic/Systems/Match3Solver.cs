@@ -9,8 +9,7 @@ public class Match3Solver : IEcsRunSystem
 {
     private readonly EcsFilterInject<Inc<Components.GameBoard>> _gameBoard = default;
     private readonly EcsFilterInject<Inc<Components.SolvePieceMatch>> _solveMatch = default;
-
-    private readonly EcsPoolInject<Components.GameBoard> _gameBoardPool = default;
+    
     private readonly EcsPoolInject<Components.SolvePieceMatch> _solveMatchPool = default;
     private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
     private readonly EcsPoolInject<Components.GamePieceType> _pieceTypePool = default;
@@ -26,7 +25,7 @@ public class Match3Solver : IEcsRunSystem
 
         foreach (var boardEntity in _gameBoard.Value)
         {
-            ref var board = ref _gameBoardPool.Value.Get(boardEntity);
+            ref var board = ref _gameBoard.Pools.Inc1.Get(boardEntity);
             foreach (var solveEntity in _solveMatch.Value)
             {
                 var toDestroy = DfsSolver(_solveMatchPool.Value.Get(solveEntity).StartPiece, board.Board);
