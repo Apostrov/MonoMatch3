@@ -1,40 +1,27 @@
 ﻿using Leopotam.EcsLite;
+using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended.Input;
 using MonoGame.Extended.Tweening;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
-public class PlayerClickedProcessing : IEcsInitSystem, IEcsRunSystem
+public class PlayerClickedProcessing : IEcsRunSystem
 {
-    private EcsFilter _pieces;
-    private EcsFilter _selected;
-    private EcsFilter _swapWait;
+    private readonly EcsFilterInject<Inc<Components.GamePiece>, Exc<Components.DestroyPiece>> _pieces = default;
+    private readonly EcsFilterInject<Inc<Components.Selected>> _selected = default;
+    private readonly EcsFilterInject<Inc<Components.SwapWith>> _swapWait = default;
 
-    private EcsPool<Components.GamePiece> _piecePool;
-    private EcsPool<Components.Selected> _selectedPool;
-    private EcsPool<Components.SwapWith> _swap;
+    private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
+    private readonly EcsPoolInject<Components.Selected> _selectedPool = default;
+    private readonly EcsPoolInject<Components.SwapWith> _swap = default;
 
-    private EcsWorld _world;
-    private SharedData _shared;
-
-    public void Init(IEcsSystems systems)
-    {
-        _world = systems.GetWorld();
-        _shared = systems.GetShared<SharedData>();
-
-        _pieces = _world.Filter<Components.GamePiece>().Exc<Components.DestroyPiece>().End();
-        _selected = _world.Filter<Components.Selected>().End();
-        _swapWait = _world.Filter<Components.SwapWith>().End();
-
-        _piecePool = _world.GetPool<Components.GamePiece>();
-        _selectedPool = _world.GetPool<Components.Selected>();
-        _swap = _world.GetPool<Components.SwapWith>();
-    }
+    private readonly EcsSharedInject<SharedData> _shared = default;
+    private readonly EcsWorldInject _world = default;
 
     public void Run(IEcsSystems systems)
     {
-        if (_swapWait.GetEntitiesCount() > 0)
+        if (_swapWait.Value.GetEntitiesCount() > 0)
             return;
 
         var mouseState = MouseExtended.GetState();
@@ -42,28 +29,28 @@ public class PlayerClickedProcessing : IEcsInitSystem, IEcsRunSystem
             return;
 
         var mousePosition = new Vector2(mouseState.X, mouseState.Y);
-        foreach (var pieceEntity in _pieces)
+        foreach (var pieceEntity in _pieces.Value)
         {
-            ref var gamePiece = ref _piecePool.Get(pieceEntity);
+            ref var gamePiece = ref _piecePool.Value.Get(pieceEntity);
             if (Vector2.DistanceSquared(mousePosition, gamePiece.Transform.Position) <
                 gamePiece.Radius * gamePiece.Radius)
             {
-                if (_selected.GetEntitiesCount() > 0)
+                if (_selected.Value.GetEntitiesCount() > 0)
                 {
-                    if (_selectedPool.Has(pieceEntity))
+                    if (_selectedPool.Value.Has(pieceEntity))
                     {
-                        _selectedPool.Get(pieceEntity).AnimationTween.Cancel();
-                        _selectedPool.Del(pieceEntity);
+                        _selectedPool.Value.Get(pieceEntity).AnimationTween.Cancel();
+                        _selectedPool.Value.Del(pieceEntity);
                         gamePiece.Transform.Scale = Vector2.One;
                         continue;
                     }
 
-                    _swap.Add(pieceEntity);
+                    _swap.Value.Add(pieceEntity);
                     continue;
                 }
 
-                ref var selected = ref _selectedPool.Add(pieceEntity);
-                selected.AnimationTween = _shared.Tweener.TweenTo(target: gamePiece.Transform,
+                ref var selected = ref _selectedPool.Value.Add(pieceEntity);
+                selected.AnimationTween = _shared.Value.Tweener.TweenTo(target: gamePiece.Transform,
                             expression: t => t.Scale,
                             toValue: new Vector2(GameConfig.SELECTED_ANIMATION_SHRINK,
                                 GameConfig.SELECTED_ANIMATION_SHRINK),

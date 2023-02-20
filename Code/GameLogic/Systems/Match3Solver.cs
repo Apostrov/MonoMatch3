@@ -1,80 +1,66 @@
 ﻿using System.Collections.Generic;
 using Leopotam.EcsLite;
+using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
-public class Match3Solver : IEcsInitSystem, IEcsRunSystem
+public class Match3Solver : IEcsRunSystem
 {
-    private EcsFilter _gameBoard;
-    private EcsFilter _solveMatch;
+    private readonly EcsFilterInject<Inc<Components.GameBoard>> _gameBoard = default;
+    private readonly EcsFilterInject<Inc<Components.SolvePieceMatch>> _solveMatch = default;
 
-    private EcsPool<Components.GameBoard> _gameBoardPool;
-    private EcsPool<Components.SolvePieceMatch> _solveMatchPool;
-    private EcsPool<Components.GamePiece> _piecePool;
-    private EcsPool<Components.GamePieceType> _pieceTypePool;
-    private EcsPool<Components.DestroyPiece> _destroyPool;
+    private readonly EcsPoolInject<Components.GameBoard> _gameBoardPool = default;
+    private readonly EcsPoolInject<Components.SolvePieceMatch> _solveMatchPool = default;
+    private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
+    private readonly EcsPoolInject<Components.GamePieceType> _pieceTypePool = default;
+    private readonly EcsPoolInject<Components.DestroyPiece> _destroyPool = default;
 
-    private EcsWorld _world;
-    private SharedData _shared;
-
-    public void Init(IEcsSystems systems)
-    {
-        _world = systems.GetWorld();
-        _shared = systems.GetShared<SharedData>();
-
-        _gameBoard = _world.Filter<Components.GameBoard>().End();
-        _solveMatch = _world.Filter<Components.SolvePieceMatch>().End();
-
-        _gameBoardPool = _world.GetPool<Components.GameBoard>();
-        _solveMatchPool = _world.GetPool<Components.SolvePieceMatch>();
-        _piecePool = _world.GetPool<Components.GamePiece>();
-        _pieceTypePool = _world.GetPool<Components.GamePieceType>();
-        _destroyPool = _world.GetPool<Components.DestroyPiece>();
-    }
+    private readonly EcsSharedInject<SharedData> _shared = default;
+    private readonly EcsWorldInject _world = default;
 
     public void Run(IEcsSystems systems)
     {
-        if (_solveMatch.GetEntitiesCount() < 1)
+        if (_solveMatch.Value.GetEntitiesCount() < 1)
             return;
 
-        foreach (var boardEntity in _gameBoard)
+        foreach (var boardEntity in _gameBoard.Value)
         {
-            ref var board = ref _gameBoardPool.Get(boardEntity);
-            foreach (var solveEntity in _solveMatch)
+            ref var board = ref _gameBoardPool.Value.Get(boardEntity);
+            foreach (var solveEntity in _solveMatch.Value)
             {
-                var toDestroy = DfsSolver(_solveMatchPool.Get(solveEntity).StartPiece, board.Board);
+                var toDestroy = DfsSolver(_solveMatchPool.Value.Get(solveEntity).StartPiece, board.Board);
                 if (toDestroy.Count < GameConfig.MATCH_COUNT)
                     continue;
 
                 foreach (var destroyPack in toDestroy)
                 {
-                    if (!destroyPack.Unpack(_world, out var entity))
+                    if (!destroyPack.Unpack(_world.Value, out var entity))
                         continue;
 
-                    ref var piece = ref _piecePool.Get(entity);
-                    _shared.Tweener.TweenTo(target: piece.Transform,
+                    ref var piece = ref _piecePool.Value.Get(entity);
+                    _shared.Value.Tweener.TweenTo(target: piece.Transform,
                         expression: t => t.Scale,
                         toValue: Vector2.Zero,
                         duration: GameConfig.DESTROY_ANIMATION_TIME);
-                    _destroyPool.Add(entity);
+                    _destroyPool.Value.Add(entity);
                 }
 
-                _solveMatchPool.Del(solveEntity);
+                _solveMatchPool.Value.Del(solveEntity);
             }
         }
     }
 
     private List<EcsPackedEntity> DfsSolver(EcsPackedEntity startBlock, EcsPackedEntity[,] board)
     {
-        if (!startBlock.Unpack(_world, out var startBlockEntity) || _destroyPool.Has(startBlockEntity))
+        if (!startBlock.Unpack(_world.Value, out var startBlockEntity) || _destroyPool.Value.Has(startBlockEntity))
             return new List<EcsPackedEntity>();
 
         var toDestroy = new List<EcsPackedEntity>();
         var dfsStack = new Stack<(int row, int column)>();
         var discovered = new bool[board.GetLength(0), board.GetLength(1)];
-        var color = _pieceTypePool.Get(startBlockEntity).Type;
-        ref var piece = ref _piecePool.Get(startBlockEntity);
+        var color = _pieceTypePool.Value.Get(startBlockEntity).Type;
+        ref var piece = ref _piecePool.Value.Get(startBlockEntity);
         dfsStack.Push((piece.Row, piece.Column));
         while (dfsStack.Count > 0)
         {
@@ -85,8 +71,8 @@ public class Match3Solver : IEcsInitSystem, IEcsRunSystem
                 continue;
 
             var entityPacked = board[position.row, position.column];
-            if (!entityPacked.Unpack(_world, out var entity) || _destroyPool.Has(entity) ||
-                _pieceTypePool.Get(entity).Type != color)
+            if (!entityPacked.Unpack(_world.Value, out var entity) || _destroyPool.Value.Has(entity) ||
+                _pieceTypePool.Value.Get(entity).Type != color)
                 continue;
 
             toDestroy.Add(entityPacked);

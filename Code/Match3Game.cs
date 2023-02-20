@@ -1,4 +1,5 @@
 ﻿using Leopotam.EcsLite;
+using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -47,6 +48,7 @@ namespace MonoMatch3.Code
                 .Add(new GameLogic.Systems.Match3Solver())
                 .Add(new GameLogic.Systems.PlayerClickedProcessing())
                 .Add(new GameLogic.Systems.SwapPiecesProcessing())
+                .Inject()
                 .Init();
 
             base.Initialize();
@@ -66,6 +68,7 @@ namespace MonoMatch3.Code
                 .Add(new DrawLogic.Systems.BackgroundDrawer())
                 .Add(new DrawLogic.Systems.GameBoardDrawer())
                 .Add(new DrawLogic.Systems.GamePieceDrawer())
+                .Inject()
                 .Init();
         }
 

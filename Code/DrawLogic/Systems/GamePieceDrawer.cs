@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Leopotam.EcsLite;
+using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended.Sprites;
 using MonoGame.Extended.TextureAtlases;
@@ -8,50 +9,40 @@ namespace MonoMatch3.Code.DrawLogic.Systems;
 
 public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
 {
-    private EcsFilter _gamePieces;
+    private readonly EcsFilterInject<Inc<GameLogic.Components.GamePiece>> _gamePieces = default;
 
-    private EcsPool<GameLogic.Components.GamePieceType> _typePool;
-    private EcsPool<GameLogic.Components.GamePiece> _piecePool;
-    private EcsPool<GameLogic.Components.DestroyPiece> _destroyPool;
+    private readonly EcsPoolInject<GameLogic.Components.GamePieceType> _typePool = default;
+    private readonly EcsPoolInject<GameLogic.Components.GamePiece> _piecePool = default;
+    private EcsPoolInject<GameLogic.Components.DestroyPiece> _destroyPool = default;
 
-    private SharedData _shared;
-    private EcsWorld _world;
+    private readonly EcsSharedInject<SharedData> _shared = default;
 
     private readonly Dictionary<GameLogic.Components.PieceType, Sprite> _tiles = new();
     private Point _tileSize;
 
     public void Init(IEcsSystems systems)
     {
-        _shared = systems.GetShared<SharedData>();
-        _world = systems.GetWorld();
-        _gamePieces = _world.Filter<GameLogic.Components.GamePiece>().End();
-
-        // pools
-        _typePool = _world.GetPool<GameLogic.Components.GamePieceType>();
-        _piecePool = _world.GetPool<GameLogic.Components.GamePiece>();
-        _destroyPool = _world.GetPool<GameLogic.Components.DestroyPiece>();
-
         // atlas related 
-        _tileSize = DrawUtils.GetTileSize(_shared.TilesAtlas);
+        _tileSize = DrawUtils.GetTileSize(_shared.Value.TilesAtlas);
 
         for (int i = 0; i < 6; i++)
         {
             var rect = new Rectangle(_tileSize.X * i, DrawUtils.TILES_ROW, _tileSize.X, _tileSize.Y);
-            _tiles[(GameLogic.Components.PieceType)i] = new Sprite(new TextureRegion2D(_shared.TilesAtlas, rect));
+            _tiles[(GameLogic.Components.PieceType)i] = new Sprite(new TextureRegion2D(_shared.Value.TilesAtlas, rect));
         }
     }
 
     public void Run(IEcsSystems systems)
     {
-        _shared.SpriteBatch.Begin();
+        _shared.Value.SpriteBatch.Begin();
 
-        foreach (var pieceEntity in _gamePieces)
+        foreach (var pieceEntity in _gamePieces.Value)
         {
-            ref var type = ref _typePool.Get(pieceEntity);
-            ref var piece = ref _piecePool.Get(pieceEntity);
-            _shared.SpriteBatch.Draw(_tiles[type.Type], piece.Transform);
+            ref var type = ref _typePool.Value.Get(pieceEntity);
+            ref var piece = ref _piecePool.Value.Get(pieceEntity);
+            _shared.Value.SpriteBatch.Draw(_tiles[type.Type], piece.Transform);
         }
 
-        _shared.SpriteBatch.End();
+        _shared.Value.SpriteBatch.End();
     }
 }

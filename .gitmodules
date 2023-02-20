@@ -1,3 +1,6 @@
-[submodule "Code/ecslite"]
-	path = Code/ecslite
+[submodule "Submodules/ecslite"]
+	path = Submodules/ecslite
 	url = https://github.com/Leopotam/ecslite.git
+[submodule "Submodules/ecslite-di"]
+	path = Submodules/ecslite-di
+	url = https://github.com/Leopotam/ecslite-di.git

@@ -1,74 +1,68 @@
 ﻿using System;
 using Leopotam.EcsLite;
+using Leopotam.EcsLite.Di;
 using MonoGame.Extended;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
 public class GameBoardInit : IEcsInitSystem
 {
-    private EcsPool<Components.GameBoard> _gameBoardPool;
-    private EcsPool<Components.GamePiece> _piecePool;
-    private EcsPool<Components.GamePieceType> _typePool;
-    private EcsPool<Components.SolvePieceMatch> _solveMatch;
+    private readonly EcsFilterInject<Inc<Components.GameBoard>> _existedBoards = default;
 
-    private EcsWorld _world;
+    private readonly EcsPoolInject<Components.GameBoard> _gameBoardPool = default;
+    private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
+    private readonly EcsPoolInject<Components.GamePieceType> _typePool = default;
+    private readonly EcsPoolInject<Components.SolvePieceMatch> _solveMatch = default;
+
+    private readonly EcsSharedInject<SharedData> _shared = default;
+    private readonly EcsWorldInject _world = default;
+
     private Random _random;
-    private SharedData _shared;
 
     public void Init(IEcsSystems systems)
     {
         _random = new Random();
-        _world = systems.GetWorld();
-        _shared = systems.GetShared<SharedData>();
-        
+
         // delete existed boards
-        var existedBoards = _world.Filter<Components.GameBoard>().End();
-        if (existedBoards.GetEntitiesCount() > 0)
+        if (_existedBoards.Value.GetEntitiesCount() > 0)
         {
-            foreach (var entity in existedBoards)
+            foreach (var entity in _existedBoards.Value)
             {
-                _world.DelEntity(entity);
+                _world.Value.DelEntity(entity);
             }
         }
-        
-        // pools
-        _gameBoardPool = _world.GetPool<Components.GameBoard>();
-        _piecePool = _world.GetPool<Components.GamePiece>();
-        _typePool = _world.GetPool<Components.GamePieceType>();
-        _solveMatch = _world.GetPool<Components.SolvePieceMatch>();
-        
-        // create board
-        ref var gameBoard = ref _gameBoardPool.Add(_world.NewEntity());
-        gameBoard.Board = new EcsPackedEntity[_shared.BoardSize, _shared.BoardSize];
-        var tileSize = DrawLogic.DrawUtils.GetTileSize(_shared.TilesAtlas);
-        
-        // fill board
-        for (int row = 0; row < _shared.BoardSize; row++)
-        {
-            for (int column = 0; column < _shared.BoardSize; column++)
-            {
-                var pieceEntity = _world.NewEntity();
 
-                var position = DrawLogic.DrawUtils.GetTileScreenPosition(row, column, _shared.GraphicsDevice, tileSize,
-                    _shared.BoardSize);
-                ref var piece = ref _piecePool.Add(pieceEntity);
+        // create board
+        ref var gameBoard = ref _gameBoardPool.Value.Add(_world.Value.NewEntity());
+        gameBoard.Board = new EcsPackedEntity[_shared.Value.BoardSize, _shared.Value.BoardSize];
+        var tileSize = DrawLogic.DrawUtils.GetTileSize(_shared.Value.TilesAtlas);
+
+        // fill board
+        for (int row = 0; row < _shared.Value.BoardSize; row++)
+        {
+            for (int column = 0; column < _shared.Value.BoardSize; column++)
+            {
+                var pieceEntity = _world.Value.NewEntity();
+
+                var position = DrawLogic.DrawUtils.GetTileScreenPosition(row, column, _shared.Value.GraphicsDevice,
+                    tileSize,
+                    _shared.Value.BoardSize);
+                ref var piece = ref _piecePool.Value.Add(pieceEntity);
                 piece.Column = column;
                 piece.Row = row;
                 piece.Transform = new Transform2(position);
                 piece.Radius = tileSize.X / 2f;
 
-                ref var type = ref _typePool.Add(pieceEntity);
+                ref var type = ref _typePool.Value.Add(pieceEntity);
                 type.Type = GetRandomType();
 
-                var entityPacked = _world.PackEntity(pieceEntity);
+                var entityPacked = _world.Value.PackEntity(pieceEntity);
                 gameBoard.Board[row, column] = entityPacked;
-                
+
                 // solve match
-                _solveMatch.Add(_world.NewEntity()).StartPiece = entityPacked;
+                _solveMatch.Value.Add(_world.Value.NewEntity()).StartPiece = entityPacked;
             }
         }
-        
-        
     }
 
     private Components.PieceType GetRandomType()

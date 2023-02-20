@@ -1,21 +1,17 @@
 ﻿using Leopotam.EcsLite;
+using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
 
 namespace MonoMatch3.Code.DrawLogic.Systems;
 
-public class BackgroundDrawer : IEcsInitSystem, IEcsRunSystem
+public class BackgroundDrawer : IEcsRunSystem
 {
-    private SharedData _shared;
-
-    public void Init(IEcsSystems systems)
-    {
-        _shared = systems.GetShared<SharedData>();
-    }
-
+    private readonly EcsSharedInject<SharedData> _shared = default;
+    
     public void Run(IEcsSystems systems)
     {
-        _shared.SpriteBatch.Begin();
-        _shared.SpriteBatch.Draw(_shared.Background, _shared.GraphicsDevice.Viewport.Bounds, Color.White);
-        _shared.SpriteBatch.End();
+        _shared.Value.SpriteBatch.Begin();
+        _shared.Value.SpriteBatch.Draw(_shared.Value.Background, _shared.Value.GraphicsDevice.Viewport.Bounds, Color.White);
+        _shared.Value.SpriteBatch.End();
     }
 }

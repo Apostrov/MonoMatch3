@@ -1,63 +1,52 @@
 ﻿using System;
 using Leopotam.EcsLite;
+using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
-public class SwapPiecesProcessing : IEcsInitSystem, IEcsRunSystem
+public class SwapPiecesProcessing : IEcsRunSystem
 {
-    private EcsFilter _selectedPiece;
-    private EcsFilter _swapPiece;
+    private readonly EcsFilterInject<Inc<Components.GamePiece, Components.Selected>> _selectedPiece = default;
+    private readonly EcsFilterInject<Inc<Components.GamePiece, Components.SwapWith>> _swapPiece = default;
 
-    private EcsPool<Components.GamePiece> _piecePool;
-    private EcsPool<Components.Selected> _selectedPool;
-    private EcsPool<Components.SwapWith> _swapPool;
+    private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
+    private readonly EcsPoolInject<Components.Selected> _selectedPool = default;
+    private readonly EcsPoolInject<Components.SwapWith> _swapPool = default;
 
-    private EcsWorld _world;
-    private SharedData _shared;
-
-    public void Init(IEcsSystems systems)
-    {
-        _world = systems.GetWorld();
-        _shared = systems.GetShared<SharedData>();
-
-        _selectedPiece = _world.Filter<Components.GamePiece>().Inc<Components.Selected>().End();
-        _swapPiece = _world.Filter<Components.GamePiece>().Inc<Components.SwapWith>().End();
-
-        _piecePool = _world.GetPool<Components.GamePiece>();
-        _selectedPool = _world.GetPool<Components.Selected>();
-        _swapPool = _world.GetPool<Components.SwapWith>();
-    }
+    private readonly EcsSharedInject<SharedData> _shared = default;
+    private readonly EcsWorldInject _world = default;
 
     public void Run(IEcsSystems systems)
     {
-        if (_swapPiece.GetEntitiesCount() < 1)
+        if (_swapPiece.Value.GetEntitiesCount() < 1)
             return;
 
-        foreach (var selectedEntity in _selectedPiece)
+        foreach (var selectedEntity in _selectedPiece.Value)
         {
-            ref var firstPiece = ref _piecePool.Get(selectedEntity);
+            ref var firstPiece = ref _piecePool.Value.Get(selectedEntity);
 
-            foreach (var swapEntity in _swapPiece)
+            foreach (var swapEntity in _swapPiece.Value)
             {
-                ref var secondPiece = ref _piecePool.Get(swapEntity);
+                ref var secondPiece = ref _piecePool.Value.Get(swapEntity);
                 if (!CanSwap(firstPiece.Row, firstPiece.Column, secondPiece.Row, secondPiece.Column))
                 {
-                    _swapPool.Del(swapEntity);
+                    _swapPool.Value.Del(swapEntity);
                     continue;
                 }
+
                 (secondPiece.Row, firstPiece.Row) = (firstPiece.Row, secondPiece.Row);
                 (secondPiece.Column, firstPiece.Column) = (firstPiece.Column, secondPiece.Column);
-                
-                _shared.Tweener.TweenTo(target: secondPiece.Transform, expression: t => t.Position,
+
+                _shared.Value.Tweener.TweenTo(target: secondPiece.Transform, expression: t => t.Position,
                         toValue: firstPiece.Transform.Position, duration: GameConfig.SWAP_ANIMATION_TIME)
-                    .OnEnd(_ => _swapPool.Del(swapEntity));
-                _shared.Tweener.TweenTo(target: firstPiece.Transform, expression: t => t.Position,
+                    .OnEnd(_ => _swapPool.Value.Del(swapEntity));
+                _shared.Value.Tweener.TweenTo(target: firstPiece.Transform, expression: t => t.Position,
                     toValue: secondPiece.Transform.Position, duration: GameConfig.SWAP_ANIMATION_TIME);
             }
 
-            _selectedPool.Get(selectedEntity).AnimationTween.Cancel();
-            _selectedPool.Del(selectedEntity);
+            _selectedPool.Value.Get(selectedEntity).AnimationTween.Cancel();
+            _selectedPool.Value.Del(selectedEntity);
             firstPiece.Transform.Scale = Vector2.One;
         }
     }
