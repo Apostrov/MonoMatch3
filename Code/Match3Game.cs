@@ -44,6 +44,7 @@ namespace MonoMatch3.Code
             // TODO: Add your initialization logic here
 
             _gameSystems
+                .Add(new GameLogic.Systems.Match3Solver())
                 .Add(new GameLogic.Systems.PlayerClickedProcessing())
                 .Add(new GameLogic.Systems.SwapPiecesProcessing())
                 .Init();

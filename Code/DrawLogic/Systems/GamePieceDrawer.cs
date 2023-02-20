@@ -12,6 +12,7 @@ public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
 
     private EcsPool<GameLogic.Components.GamePieceType> _typePool;
     private EcsPool<GameLogic.Components.GamePiece> _piecePool;
+    private EcsPool<GameLogic.Components.DestroyPiece> _destroyPool;
 
     private SharedData _shared;
     private EcsWorld _world;
@@ -28,6 +29,7 @@ public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
         // pools
         _typePool = _world.GetPool<GameLogic.Components.GamePieceType>();
         _piecePool = _world.GetPool<GameLogic.Components.GamePiece>();
+        _destroyPool = _world.GetPool<GameLogic.Components.DestroyPiece>();
 
         // atlas related 
         _tileSize = DrawUtils.GetTileSize(_shared.TilesAtlas);
@@ -47,6 +49,8 @@ public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
         {
             ref var type = ref _typePool.Get(pieceEntity);
             ref var piece = ref _piecePool.Get(pieceEntity);
+            if(_destroyPool.Has(pieceEntity))
+                piece.Transform.Scale = new Vector2(0.3f, 0.3f);
             _shared.SpriteBatch.Draw(_tiles[type.Type], piece.Transform);
         }
 

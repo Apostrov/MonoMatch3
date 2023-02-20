@@ -9,6 +9,7 @@ public class GameBoardInit : IEcsInitSystem
     private EcsPool<Components.GameBoard> _gameBoardPool;
     private EcsPool<Components.GamePiece> _piecePool;
     private EcsPool<Components.GamePieceType> _typePool;
+    private EcsPool<Components.SolveMatch> _solveMatch;
 
     private EcsWorld _world;
     private Random _random;
@@ -19,7 +20,8 @@ public class GameBoardInit : IEcsInitSystem
         _random = new Random();
         _world = systems.GetWorld();
         _shared = systems.GetShared<SharedData>();
-
+        
+        // delete existed boards
         var existedBoards = _world.Filter<Components.GameBoard>().End();
         if (existedBoards.GetEntitiesCount() > 0)
         {
@@ -28,15 +30,19 @@ public class GameBoardInit : IEcsInitSystem
                 _world.DelEntity(entity);
             }
         }
-
+        
+        // pools
         _gameBoardPool = _world.GetPool<Components.GameBoard>();
         _piecePool = _world.GetPool<Components.GamePiece>();
         _typePool = _world.GetPool<Components.GamePieceType>();
-
+        _solveMatch = _world.GetPool<Components.SolveMatch>();
+        
+        // create board
         ref var gameBoard = ref _gameBoardPool.Add(_world.NewEntity());
         gameBoard.Board = new EcsPackedEntity[_shared.BoardSize, _shared.BoardSize];
         var tileSize = DrawLogic.DrawUtils.GetTileSize(_shared.TilesAtlas);
-
+        
+        // fill board
         for (int row = 0; row < _shared.BoardSize; row++)
         {
             for (int column = 0; column < _shared.BoardSize; column++)
@@ -57,6 +63,9 @@ public class GameBoardInit : IEcsInitSystem
                 gameBoard.Board[row, column] = _world.PackEntity(pieceEntity);
             }
         }
+        
+        // solve match
+        _solveMatch.Add(_world.NewEntity());
     }
 
     private Components.PieceType GetRandomType()

@@ -34,3 +34,7 @@ public struct Selected
 public struct SwapWith
 {
 }
+
+public struct DestroyPiece
+{
+}
