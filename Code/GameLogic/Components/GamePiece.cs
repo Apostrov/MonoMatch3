@@ -36,4 +36,5 @@ public struct SwapWith
 
 public struct DestroyPiece
 {
+    public float WaitTime;
 }

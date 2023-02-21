@@ -12,12 +12,17 @@ public class RearrangeBoardProcessing : IEcsRunSystem
     private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
     private readonly EcsPoolInject<Components.DestroyPiece> _destroyPool = default;
     private readonly EcsPoolInject<Components.RearrangePiece> _rearrangePiecePool = default;
+    private readonly EcsPoolInject<Components.FillBoard> _fillBoard = default;
+    private readonly EcsPoolInject<Components.SolvePieceMatch> _solveMatch = default;
 
     private readonly EcsWorldInject _world = default;
     private readonly EcsSharedInject<SharedData> _shared = default;
 
     public void Run(IEcsSystems systems)
     {
+        if (_rearrange.Value.GetEntitiesCount() < 1)
+            return;
+        
         foreach (var rearrangeEntity in _rearrange.Value)
         {
             ref var rearrange = ref _rearrange.Pools.Inc1.Get(rearrangeEntity);
@@ -65,15 +70,23 @@ public class RearrangeBoardProcessing : IEcsRunSystem
                         }
 
                         _rearrangePiecePool.Value.Add(nextPieceEntity).Animation = _shared.Value.Tweener.TweenTo(
-                            target: nextPiece.Transform,
-                            expression: t => t.Position,
-                            toValue: position,
-                            duration: GameConfig.REARRANGE_ANIMATION_TIME)
+                                target: nextPiece.Transform,
+                                expression: t => t.Position,
+                                toValue: position,
+                                duration: GameConfig.REARRANGE_ANIMATION_TIME)
                             .OnEnd(_ => _rearrangePiecePool.Value.Del(nextPieceEntity));
+
+                        _solveMatch.Value.Add(_world.Value.NewEntity()) = new Components.SolvePieceMatch
+                        {
+                            StartPiece = nextPiecePacked,
+                            WaitTime = GameConfig.REARRANGE_ANIMATION_TIME
+                        };
                         break;
                     }
                 }
             }
+
+            _fillBoard.Value.Add(_world.Value.NewEntity());
         }
     }
 }

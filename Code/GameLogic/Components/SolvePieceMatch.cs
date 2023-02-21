@@ -5,4 +5,5 @@ namespace MonoMatch3.Code.GameLogic.Components;
 public struct SolvePieceMatch
 {
     public EcsPackedEntity StartPiece;
+    public float WaitTime;
 }

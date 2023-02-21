@@ -49,6 +49,8 @@ namespace MonoMatch3.Code
                 .Add(new GameLogic.Systems.PlayerClickedProcessing())
                 .Add(new GameLogic.Systems.SwapPiecesProcessing())
                 .Add(new GameLogic.Systems.RearrangeBoardProcessing())
+                .Add(new GameLogic.Systems.FillBoardProcessing())
+                .Add(new GameLogic.Systems.GamePieceDestroyer())
                 .Inject()
                 .Init();
 

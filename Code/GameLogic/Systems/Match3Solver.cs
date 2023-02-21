@@ -2,6 +2,7 @@
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
+using MonoGame.Extended;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
@@ -28,11 +29,16 @@ public class Match3Solver : IEcsRunSystem
             ref var board = ref _gameBoard.Pools.Inc1.Get(boardEntity);
             foreach (var solveEntity in _solveMatch.Value)
             {
-                var rowToDestroy = RowDfsSolver(_solveMatch.Pools.Inc1.Get(solveEntity).StartPiece, board.Board);
-                var columnToDestroy = ColumnDfsSolver(_solveMatch.Pools.Inc1.Get(solveEntity).StartPiece, board.Board);
+                ref var solveMatch = ref _solveMatch.Pools.Inc1.Get(solveEntity);
+                solveMatch.WaitTime -= _shared.Value.GameTime.GetElapsedSeconds();
+                if (solveMatch.WaitTime >= 0.0f)
+                    continue;
+
+                var rowToDestroy = RowDfsSolver(solveMatch.StartPiece, board.Board);
+                var columnToDestroy = ColumnDfsSolver(solveMatch.StartPiece, board.Board);
                 int destroyed = DestroyLine(rowToDestroy);
                 destroyed += DestroyLine(columnToDestroy);
-                if(destroyed > 0)
+                if (destroyed > 0)
                     _rearrangePool.Value.Add(_world.Value.NewEntity()).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
                 _solveMatch.Pools.Inc1.Del(solveEntity);
             }
@@ -55,7 +61,7 @@ public class Match3Solver : IEcsRunSystem
                 expression: t => t.Scale,
                 toValue: Vector2.Zero,
                 duration: GameConfig.DESTROY_ANIMATION_TIME);
-            _destroyPool.Value.Add(entity);
+            _destroyPool.Value.Add(entity).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
             destroyed++;
         }
 

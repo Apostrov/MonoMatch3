@@ -53,7 +53,7 @@ public class GameBoardInit : IEcsInitSystem
                 piece.Radius = tileSize.X / 2f;
 
                 ref var type = ref _typePool.Value.Add(pieceEntity);
-                type.Type = GetRandomType();
+                type.Type = GameUtils.GetRandomType();
 
                 var entityPacked = _world.Value.PackEntity(pieceEntity);
                 gameBoard.Board[row, column] = entityPacked;
@@ -62,10 +62,5 @@ public class GameBoardInit : IEcsInitSystem
                 _solveMatch.Value.Add(_world.Value.NewEntity()).StartPiece = entityPacked;
             }
         }
-    }
-
-    private Components.PieceType GetRandomType()
-    {
-        return (Components.PieceType)_random.Next(0, (int)Components.PieceType.COUNT);
     }
 }
