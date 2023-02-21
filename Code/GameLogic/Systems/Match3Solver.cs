@@ -31,7 +31,7 @@ public class Match3Solver : IEcsRunSystem
             {
                 ref var solveMatch = ref _solveMatch.Pools.Inc1.Get(solveEntity);
                 solveMatch.WaitTime -= _shared.Value.GameTime.GetElapsedSeconds();
-                if (solveMatch.WaitTime >= 0.0f)
+                if (solveMatch.WaitTime > 0.0f)
                     continue;
 
                 var rowToDestroy = RowDfsSolver(solveMatch.StartPiece, board.Board);
