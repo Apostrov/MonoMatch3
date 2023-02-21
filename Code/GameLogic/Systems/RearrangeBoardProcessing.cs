@@ -34,28 +34,28 @@ public class RearrangeBoardProcessing : IEcsRunSystem
         {
             var board = _board.Pools.Inc1.Get(boardEntity).Board;
             var tileSize = DrawLogic.DrawUtils.GetTileSize(_shared.Value.TilesAtlas);
-            for (int i = board.GetLength(0) - 1; i >= 0; i--)
+            for (int row = board.GetLength(0) - 1; row >= 0; row--)
             {
-                for (int j = 0; j < board.GetLength(1); j++)
+                for (int column = 0; column < board.GetLength(1); column++)
                 {
-                    var piecePacked = board[i, j];
+                    var piecePacked = board[row, column];
                     if (piecePacked.Unpack(_world.Value, out var pieceEntity) && !_destroyPool.Value.Has(pieceEntity))
                         continue;
 
-                    var nextIndex = 1;
-                    while (i - nextIndex >= 0)
+                    var moveRow = 1;
+                    while (row - moveRow >= 0)
                     {
-                        var newI = i - nextIndex;
-                        var nextPiecePacked = board[newI, j];
-                        nextIndex++;
+                        var newRow = row - moveRow;
+                        var nextPiecePacked = board[newRow, column];
+                        moveRow++;
                         if (!nextPiecePacked.Unpack(_world.Value, out var nextPieceEntity) ||
                             _destroyPool.Value.Has(nextPieceEntity))
                             continue;
 
-                        (board[i, j], board[newI, j]) = (board[newI, j], board[i, j]);
+                        (board[row, column], board[newRow, column]) = (board[newRow, column], board[row, column]);
                         ref var nextPiece = ref _piecePool.Value.Get(nextPieceEntity);
-                        nextPiece.BoardPosition = new PiecePosition(i, j);
-                        var position = DrawLogic.DrawUtils.GetTileScreenPosition(i, j,
+                        nextPiece.BoardPosition = new PiecePosition(row, column);
+                        var position = DrawLogic.DrawUtils.GetTileScreenPosition(row, column,
                             _shared.Value.GraphicsDevice, tileSize, _shared.Value.BoardSize);
 
                         if (_rearrangePiecePool.Value.Has(nextPieceEntity))
@@ -68,7 +68,8 @@ public class RearrangeBoardProcessing : IEcsRunSystem
                             target: nextPiece.Transform,
                             expression: t => t.Position,
                             toValue: position,
-                            duration: GameConfig.REARRANGE_ANIMATION_TIME);
+                            duration: GameConfig.REARRANGE_ANIMATION_TIME)
+                            .OnEnd(_ => _rearrangePiecePool.Value.Del(nextPieceEntity));
                         break;
                     }
                 }

@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using Leopotam.EcsLite;
+﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
-using MonoGame.Extended;
 using MonoGame.Extended.Input;
 using MonoGame.Extended.Tweening;
 
@@ -13,13 +11,14 @@ public class PlayerClickedProcessing : IEcsRunSystem
     private readonly EcsFilterInject<Inc<Components.GamePiece>, Exc<Components.DestroyPiece>> _pieces = default;
     private readonly EcsFilterInject<Inc<Components.Selected>> _selected = default;
     private readonly EcsFilterInject<Inc<Components.SwapWith>> _swapWait = default;
+    private readonly EcsFilterInject<Inc<Components.RearrangePiece>> _rearrangePiece = default;
 
     private readonly EcsSharedInject<SharedData> _shared = default;
     private readonly EcsWorldInject _world = default;
 
     public void Run(IEcsSystems systems)
     {
-        if (_swapWait.Value.GetEntitiesCount() > 0)
+        if (_swapWait.Value.GetEntitiesCount() > 0 || _rearrangePiece.Value.GetEntitiesCount() > 0)
             return;
 
         var mouseState = MouseExtended.GetState();

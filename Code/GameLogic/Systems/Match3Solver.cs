@@ -30,19 +30,21 @@ public class Match3Solver : IEcsRunSystem
             {
                 var rowToDestroy = RowDfsSolver(_solveMatch.Pools.Inc1.Get(solveEntity).StartPiece, board.Board);
                 var columnToDestroy = ColumnDfsSolver(_solveMatch.Pools.Inc1.Get(solveEntity).StartPiece, board.Board);
-                DestroyLine(rowToDestroy);
-                DestroyLine(columnToDestroy);
-
+                int destroyed = DestroyLine(rowToDestroy);
+                destroyed += DestroyLine(columnToDestroy);
+                if(destroyed > 0)
+                    _rearrangePool.Value.Add(_world.Value.NewEntity()).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
                 _solveMatch.Pools.Inc1.Del(solveEntity);
             }
         }
     }
 
-    private void DestroyLine(List<EcsPackedEntity> line)
+    private int DestroyLine(List<EcsPackedEntity> line)
     {
         if (line.Count < GameConfig.MATCH_COUNT)
-            return;
+            return 0;
 
+        int destroyed = 0;
         foreach (var destroyPack in line)
         {
             if (!destroyPack.Unpack(_world.Value, out var entity) || _destroyPool.Value.Has(entity))
@@ -54,9 +56,10 @@ public class Match3Solver : IEcsRunSystem
                 toValue: Vector2.Zero,
                 duration: GameConfig.DESTROY_ANIMATION_TIME);
             _destroyPool.Value.Add(entity);
-
-            _rearrangePool.Value.Add(_world.Value.NewEntity()).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
+            destroyed++;
         }
+
+        return destroyed;
     }
 
 

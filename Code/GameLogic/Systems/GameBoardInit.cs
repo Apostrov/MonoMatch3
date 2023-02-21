@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using MonoGame.Extended;
