@@ -1,12 +1,11 @@
-﻿using System.Diagnostics;
-using Leopotam.EcsLite;
+﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
 public class SwapWithoutMatchTracker : IEcsRunSystem
 {
-    private readonly EcsFilterInject<Inc<Components.SwapWithotuMatch>> _cantMatch = default;
+    private readonly EcsFilterInject<Inc<Components.SwapWithoutMatch>> _cantMatch = default;
     private readonly EcsFilterInject<Inc<Components.LastSwap>> _lastSwap = default;
 
     private readonly EcsPoolInject<Components.Selected> _selectedPool = default;
@@ -28,7 +27,6 @@ public class SwapWithoutMatchTracker : IEcsRunSystem
 
                 _selectedPool.Value.Add(selected).IsUndo = true;
                 _swapPool.Value.Add(swapped);
-                Debug.WriteLine("Unswap detected");
             }
         }
         

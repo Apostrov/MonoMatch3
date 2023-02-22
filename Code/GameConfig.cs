@@ -11,4 +11,5 @@ public static class GameConfig
     
     // game logic
     public const int MATCH_COUNT = 3;
+    public const int LINE_BONUS_COUNT = 4;
 }

@@ -9,3 +9,10 @@ public enum PieceType
     Purple,
     COUNT
 }
+
+public enum LineType
+{
+    Row = 0,
+    Column,
+    COUNT
+}

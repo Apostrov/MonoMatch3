@@ -19,6 +19,6 @@ public struct LastSwap
     public EcsPackedEntity Swapped;
 }
 
-public struct SwapWithotuMatch
+public struct SwapWithoutMatch
 {
 }

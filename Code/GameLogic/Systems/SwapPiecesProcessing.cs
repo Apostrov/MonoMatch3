@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
@@ -14,7 +13,7 @@ public class SwapPiecesProcessing : IEcsRunSystem
     private readonly EcsFilterInject<Inc<Components.LastSwap>> _lastSwap = default;
 
     private readonly EcsPoolInject<Components.SolvePieceMatch> _solveMatchPool = default;
-    private readonly EcsPoolInject<Components.SwapWithotuMatch> _cantMatchPool = default;
+    private readonly EcsPoolInject<Components.SwapWithoutMatch> _cantMatchPool = default;
 
     private readonly EcsSharedInject<SharedData> _shared = default;
     private readonly EcsWorldInject _world = default;
@@ -27,7 +26,6 @@ public class SwapPiecesProcessing : IEcsRunSystem
         foreach (var selectedEntity in _selectedPiece.Value)
         {
             ref var selected = ref _selectedPiece.Pools.Inc1.Get(selectedEntity);
-            Debug.WriteLine(_selectedPiece.Pools.Inc2.Get(selectedEntity).IsUndo);
 
             foreach (var swapEntity in _swapPiece.Value)
             {
@@ -43,7 +41,8 @@ public class SwapPiecesProcessing : IEcsRunSystem
                     (selected.BoardPosition, swap.BoardPosition);
                 var selectedPack = _world.Value.PackEntity(selectedEntity);
                 var swapPack = _world.Value.PackEntity(swapEntity);
-                AddLastSwap(selectedPack, swapPack);
+                if (!_selectedPiece.Pools.Inc2.Get(selectedEntity).IsUndo)
+                    AddLastSwap(selectedPack, swapPack);
 
                 foreach (var boardEntity in _gameBoard.Value)
                 {

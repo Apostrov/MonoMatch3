@@ -15,6 +15,7 @@ public class Match3Solver : IEcsRunSystem
     private readonly EcsPoolInject<Components.GamePieceType> _pieceTypePool = default;
     private readonly EcsPoolInject<Components.DestroyPiece> _destroyPool = default;
     private readonly EcsPoolInject<Components.RearrangeBoard> _rearrangePool = default;
+    private readonly EcsPoolInject<Components.LineSpawn> _lineSpawnPool = default;
 
     private readonly EcsSharedInject<SharedData> _shared = default;
     private readonly EcsWorldInject _world = default;
@@ -39,9 +40,25 @@ public class Match3Solver : IEcsRunSystem
                 int destroyed = DestroyLine(rowToDestroy);
                 destroyed += DestroyLine(columnToDestroy);
                 if (destroyed > 0)
+                {
+                    if (destroyed >= GameConfig.LINE_BONUS_COUNT)
+                    {
+                        if (solveMatch.StartPiece.Unpack(_world.Value, out var entity))
+                        {
+                            _lineSpawnPool.Value.Add(_world.Value.NewEntity()) = new Components.LineSpawn
+                            {
+                                LinePosition = _piecePool.Value.Get(entity).BoardPosition,
+                                WaitTime = GameConfig.DESTROY_ANIMATION_TIME
+                            };
+                        }
+                    }
+
                     _rearrangePool.Value.Add(_world.Value.NewEntity()).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
+                }
                 else
+                {
                     solveMatch.OnDontMatchCallback?.Invoke();
+                }
 
                 _solveMatch.Pools.Inc1.Del(solveEntity);
             }
@@ -95,7 +112,9 @@ public class Match3Solver : IEcsRunSystem
     private List<EcsPackedEntity> DfsSolver(EcsPackedEntity startBlock, EcsPackedEntity[,] board,
         GetNextPosition nextPosition)
     {
-        if (!startBlock.Unpack(_world.Value, out var startBlockEntity) || _destroyPool.Value.Has(startBlockEntity))
+        if (!startBlock.Unpack(_world.Value, out var startBlockEntity) ||
+            _destroyPool.Value.Has(startBlockEntity) ||
+            !_pieceTypePool.Value.Has(startBlockEntity))
             return new List<EcsPackedEntity>();
 
         var toDestroy = new List<EcsPackedEntity>();
@@ -114,7 +133,7 @@ public class Match3Solver : IEcsRunSystem
 
             var entityPacked = board[position.Row, position.Column];
             if (!entityPacked.Unpack(_world.Value, out var entity) || _destroyPool.Value.Has(entity) ||
-                _pieceTypePool.Value.Get(entity).Type != color)
+                !_pieceTypePool.Value.Has(entity) || _pieceTypePool.Value.Get(entity).Type != color)
                 continue;
 
             toDestroy.Add(entityPacked);

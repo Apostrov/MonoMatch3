@@ -8,6 +8,7 @@ public static class DrawUtils
     public const int ATLAS_SIZE = 7;
     public const int TILES_ROW = 0;
     public const int BACKGROUND_ROW = 5;
+    public const int BONUSES_ROW = 4;
 
     public static Point GetTileSize(Texture2D atlas)
     {
