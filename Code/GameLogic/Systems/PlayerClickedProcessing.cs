@@ -1,6 +1,7 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
+using MonoGame.Extended;
 using MonoGame.Extended.Input;
 using MonoGame.Extended.Tweening;
 
@@ -18,7 +19,8 @@ public class PlayerClickedProcessing : IEcsRunSystem
 
     public void Run(IEcsSystems systems)
     {
-        if (_swapWait.Value.GetEntitiesCount() > 0 || _rearrangePiece.Value.GetEntitiesCount() > 0)
+        if (_swapWait.Value.GetEntitiesCount() > 0 ||
+            _rearrangePiece.Value.GetEntitiesCount() > 0)
             return;
 
         var mouseState = MouseExtended.GetState();

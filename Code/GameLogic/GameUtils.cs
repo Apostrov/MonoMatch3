@@ -6,8 +6,8 @@ public static class GameUtils
 {
     private static readonly Random Random = new();
 
-    public static Components.PieceType GetRandomType()
+    public static PieceType GetRandomType()
     {
-        return (Components.PieceType)Random.Next(0, (int)Components.PieceType.COUNT);
+        return (PieceType)Random.Next(0, (int)PieceType.COUNT);
     }
 }

@@ -14,7 +14,7 @@ public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
 
     private readonly EcsSharedInject<SharedData> _shared = default;
 
-    private readonly Dictionary<GameLogic.Components.PieceType, Sprite> _tiles = new();
+    private readonly Dictionary<GameLogic.PieceType, Sprite> _tiles = new();
     private Point _tileSize;
 
     public void Init(IEcsSystems systems)
@@ -25,7 +25,7 @@ public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
         for (int i = 0; i < 6; i++)
         {
             var rect = new Rectangle(_tileSize.X * i, DrawUtils.TILES_ROW, _tileSize.X, _tileSize.Y);
-            _tiles[(GameLogic.Components.PieceType)i] = new Sprite(new TextureRegion2D(_shared.Value.TilesAtlas, rect));
+            _tiles[(GameLogic.PieceType)i] = new Sprite(new TextureRegion2D(_shared.Value.TilesAtlas, rect));
         }
     }
 

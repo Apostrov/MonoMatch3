@@ -40,6 +40,9 @@ public class Match3Solver : IEcsRunSystem
                 destroyed += DestroyLine(columnToDestroy);
                 if (destroyed > 0)
                     _rearrangePool.Value.Add(_world.Value.NewEntity()).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
+                else
+                    solveMatch.OnDontMatchCallback?.Invoke();
+
                 _solveMatch.Pools.Inc1.Del(solveEntity);
             }
         }
