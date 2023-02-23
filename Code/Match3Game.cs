@@ -48,12 +48,13 @@ namespace MonoMatch3.Code
                 .Add(new GameLogic.Systems.Match3Solver())
                 .Add(new GameLogic.Systems.SwapWithoutMatchTracker())
                 .Add(new GameLogic.Systems.SwapPiecesProcessing())
-                .Add(new GameLogic.Systems.LineMatchProcessing())
                 .Add(new GameLogic.Systems.BonusSpawner())
                 .Add(new GameLogic.Systems.PlayerClickedProcessing())
                 .Add(new GameLogic.Systems.RearrangeBoardProcessing())
                 .Add(new GameLogic.Systems.FillBoardProcessing())
                 .Add(new GameLogic.Systems.GamePieceDestroyer())
+                .Add(new GameLogic.Systems.LineMatchProcessing())
+                .Add(new GameLogic.Systems.LineDestroyerFlyProcessing())
                 .Inject()
                 .Init();
 
@@ -75,6 +76,7 @@ namespace MonoMatch3.Code
                 .Add(new DrawLogic.Systems.BackgroundDrawer())
                 .Add(new DrawLogic.Systems.GameBoardDrawer())
                 .Add(new DrawLogic.Systems.GamePieceDrawer())
+                .Add(new DrawLogic.Systems.LineDestroyerDrawer())
                 .Inject()
                 .Init();
         }

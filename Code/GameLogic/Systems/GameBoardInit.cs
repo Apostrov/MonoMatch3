@@ -53,7 +53,7 @@ public class GameBoardInit : IEcsInitSystem
                 piece.Radius = tileSize.X / 2f;
 
                 ref var type = ref _typePool.Value.Add(pieceEntity);
-                type.Type = GameUtils.GetRandomType();
+                type.Type = GameUtils.GetRandomPiece();
 
                 var entityPacked = _world.Value.PackEntity(pieceEntity);
                 gameBoard.Board[row, column] = entityPacked;

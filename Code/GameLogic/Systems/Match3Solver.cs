@@ -41,8 +41,8 @@ public class Match3Solver : IEcsRunSystem
                 if (solveMatch.IsClicked)
                     bonusPlayed |= IsBonusMatch(solveMatch.StartPiece);
 
-                var rowToDestroy = DfsSolver(solveMatch.StartPiece, board.Board, GameUtils.RowMover());
-                var columnToDestroy = DfsSolver(solveMatch.StartPiece, board.Board, GameUtils.ColumnMover());
+                var rowToDestroy = DfsSolver(solveMatch.StartPiece, board.Board, RowMover());
+                var columnToDestroy = DfsSolver(solveMatch.StartPiece, board.Board, ColumnMover());
                 int destroyed = DestroyLine(rowToDestroy);
                 destroyed += DestroyLine(columnToDestroy);
                 MatchCompleted(destroyed, bonusPlayed, ref solveMatch);
@@ -136,5 +136,23 @@ public class Match3Solver : IEcsRunSystem
         }
 
         return toDestroy;
+    }
+    
+    private static GameUtils.GetNextPosition RowMover()
+    {
+        return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
+        {
+            add.Push(new PiecePosition(piecePosition.Row + 1, piecePosition.Column));
+            add.Push(new PiecePosition(piecePosition.Row - 1, piecePosition.Column));
+        };
+    }
+
+    private static GameUtils.GetNextPosition ColumnMover()
+    {
+        return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
+        {
+            add.Push(new PiecePosition(piecePosition.Row, piecePosition.Column + 1));
+            add.Push(new PiecePosition(piecePosition.Row, piecePosition.Column - 1));
+        };
     }
 }

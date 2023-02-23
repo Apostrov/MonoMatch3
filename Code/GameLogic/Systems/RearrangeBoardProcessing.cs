@@ -8,9 +8,9 @@ public class RearrangeBoardProcessing : IEcsRunSystem
 {
     private readonly EcsFilterInject<Inc<Components.RearrangeBoard>> _rearrange = default;
     private readonly EcsFilterInject<Inc<Components.GameBoard>> _board = default;
+    private readonly EcsFilterInject<Inc<Components.DestroyPiece>> _destroy = default;
 
     private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
-    private readonly EcsPoolInject<Components.DestroyPiece> _destroyPool = default;
     private readonly EcsPoolInject<Components.RearrangePiece> _rearrangePiecePool = default;
     private readonly EcsPoolInject<Components.FillBoard> _fillBoard = default;
     private readonly EcsPoolInject<Components.SolvePieceMatch> _solveMatch = default;
@@ -27,7 +27,7 @@ public class RearrangeBoardProcessing : IEcsRunSystem
         {
             ref var rearrange = ref _rearrange.Pools.Inc1.Get(rearrangeEntity);
             rearrange.WaitTime -= _shared.Value.GameTime.GetElapsedSeconds();
-            if (rearrange.WaitTime > 0.0f)
+            if (rearrange.WaitTime > 0.0f || _destroy.Value.GetEntitiesCount() > 0)
                 continue;
             _rearrange.Pools.Inc1.Del(rearrangeEntity);
         }
@@ -44,7 +44,7 @@ public class RearrangeBoardProcessing : IEcsRunSystem
                 for (int column = 0; column < board.GetLength(1); column++)
                 {
                     var piecePacked = board[row, column];
-                    if (piecePacked.Unpack(_world.Value, out var pieceEntity) && !_destroyPool.Value.Has(pieceEntity))
+                    if (piecePacked.Unpack(_world.Value, out var pieceEntity) && !_destroy.Pools.Inc1.Has(pieceEntity))
                         continue;
 
                     var moveRow = 1;
@@ -54,7 +54,7 @@ public class RearrangeBoardProcessing : IEcsRunSystem
                         var nextPiecePacked = board[newRow, column];
                         moveRow++;
                         if (!nextPiecePacked.Unpack(_world.Value, out var nextPieceEntity) ||
-                            _destroyPool.Value.Has(nextPieceEntity))
+                            _destroy.Pools.Inc1.Has(nextPieceEntity))
                             continue;
 
                         (board[row, column], board[newRow, column]) = (board[newRow, column], board[row, column]);

@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using Microsoft.Xna.Framework;
+using MonoGame.Extended;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
@@ -12,6 +14,7 @@ public class LineMatchProcessing : IEcsRunSystem
     private readonly EcsFilterInject<Inc<Components.GameBoard>> _gameBoard = default;
 
     private readonly EcsPoolInject<Components.DestroyPiece> _destroyPool = default;
+    private readonly EcsPoolInject<Components.LineDestroyer> _destroyer = default;
 
     private readonly EcsWorldInject _world = default;
 
@@ -29,11 +32,13 @@ public class LineMatchProcessing : IEcsRunSystem
                 ref var gameBoard = ref _gameBoard.Pools.Inc1.Get(gameBoardEntity);
                 switch (line.Type)
                 {
-                    case LineType.Row:
-                        LineSolver(linePiece.BoardPosition, gameBoard.Board, GameUtils.ColumnMover());
-                        break;
                     case LineType.Column:
-                        LineSolver(linePiece.BoardPosition, gameBoard.Board, GameUtils.RowMover());
+                        LineDestroyer(linePiece, gameBoard.Board, LeftMover());
+                        LineDestroyer(linePiece, gameBoard.Board, RightMover());
+                        break;
+                    case LineType.Row:
+                        LineDestroyer(linePiece, gameBoard.Board, UpMover());
+                        LineDestroyer(linePiece, gameBoard.Board, DownMover());
                         break;
                 }
             }
@@ -44,12 +49,13 @@ public class LineMatchProcessing : IEcsRunSystem
         }
     }
 
-    private void LineSolver(PiecePosition startBlock, EcsPackedEntity[,] board,
+    private void LineDestroyer(Components.GamePiece startBlock, EcsPackedEntity[,] board,
         GameUtils.GetNextPosition nextPosition)
     {
+        var toDestroy = new List<(Vector2, EcsPackedEntity)>();
         var nextPiece = new Stack<PiecePosition>();
         var discovered = new bool[board.GetLength(0), board.GetLength(1)];
-        nextPiece.Push(startBlock);
+        nextPiece.Push(startBlock.BoardPosition);
 
         while (nextPiece.Count > 0)
         {
@@ -62,9 +68,53 @@ public class LineMatchProcessing : IEcsRunSystem
             var entityPacked = board[position.Row, position.Column];
             if (!entityPacked.Unpack(_world.Value, out var destroyEntity) || _destroyPool.Value.Has(destroyEntity))
                 continue;
-            
-            _destroyPool.Value.Add(destroyEntity).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
+
+            var drawPosition = _lineMatch.Pools.Inc2.Get(destroyEntity).Transform.Position;
+            toDestroy.Add((drawPosition, entityPacked));
+            discovered[position.Row, position.Column] = true;
             nextPosition(position, ref nextPiece);
         }
+
+        SpawnDestroyer(startBlock.Transform.Position, toDestroy);
+    }
+
+    private void SpawnDestroyer(Vector2 spawnPosition, List<(Vector2, EcsPackedEntity)> points)
+    {
+        ref var destroyer = ref _destroyer.Value.Add(_world.Value.NewEntity());
+        destroyer.FlyPosition = spawnPosition;
+        destroyer.FlyPoints = new Queue<(Vector2, EcsPackedEntity)>(points);
+        destroyer.Transform = new Transform2(spawnPosition);
+    }
+
+    private static GameUtils.GetNextPosition LeftMover()
+    {
+        return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
+        {
+            add.Push(new PiecePosition(piecePosition.Row - 1, piecePosition.Column));
+        };
+    }
+
+    private static GameUtils.GetNextPosition RightMover()
+    {
+        return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
+        {
+            add.Push(new PiecePosition(piecePosition.Row + 1, piecePosition.Column));
+        };
+    }
+
+    private static GameUtils.GetNextPosition UpMover()
+    {
+        return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
+        {
+            add.Push(new PiecePosition(piecePosition.Row, piecePosition.Column - 1));
+        };
+    }
+
+    private static GameUtils.GetNextPosition DownMover()
+    {
+        return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
+        {
+            add.Push(new PiecePosition(piecePosition.Row, piecePosition.Column + 1));
+        };
     }
 }

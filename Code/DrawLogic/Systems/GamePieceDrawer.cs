@@ -2,7 +2,6 @@
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Sprites;
 using MonoGame.Extended.TextureAtlases;
 

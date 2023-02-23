@@ -31,7 +31,7 @@ public class BonusSpawner : IEcsRunSystem
                 if (bonusSpawn.Destroyed == GameConfig.LINE_BONUS_COUNT)
                 {
                     var pieceEntity = _world.Value.NewEntity();
-                    _linePool.Value.Add(pieceEntity).Type = GetLineType();
+                    _linePool.Value.Add(pieceEntity).Type = GameUtils.GetRandomLine();
                     SpawnBonus(pieceEntity, bonusSpawn);
                 }
 
@@ -61,24 +61,5 @@ public class BonusSpawner : IEcsRunSystem
             var entityPacked = _world.Value.PackEntity(pieceEntity);
             gameBoard.Board[row, column] = entityPacked;
         }
-    }
-
-    private LineType GetLineType()
-    {
-        foreach (var lastSwapEntity in _lastSwap.Value)
-        {
-            ref var lastSwap = ref _lastSwap.Pools.Inc1.Get(lastSwapEntity);
-            if (!lastSwap.Selected.Unpack(_world.Value, out var selectedEntity))
-                return LineType.Row;
-            if (!lastSwap.Swapped.Unpack(_world.Value, out var swappedEntity))
-                return LineType.Row;
-
-            ref var selected = ref _piecePool.Value.Get(selectedEntity);
-            ref var swapped = ref _piecePool.Value.Get(swappedEntity);
-            if (selected.BoardPosition.Row == swapped.BoardPosition.Row)
-                return LineType.Column;
-        }
-
-        return LineType.Row;
     }
 }

@@ -8,8 +8,9 @@ public static class GameConfig
     public const float SELECTED_ANIMATION_TIME = 0.75f;
     public const float DESTROY_ANIMATION_TIME = 0.5f;
     public const float REARRANGE_ANIMATION_TIME = 0.3f;
-    
+
     // game logic
     public const int MATCH_COUNT = 3;
     public const int LINE_BONUS_COUNT = 4;
+    public const float LINE_DESTROYER_FLY_SPEED = 300f;
 }

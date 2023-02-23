@@ -45,7 +45,7 @@ public class FillBoardProcessing : IEcsRunSystem
                     piece.Radius = tileSize.X / 2f;
 
                     ref var type = ref _typePool.Value.Add(newPiece);
-                    type.Type = GameUtils.GetRandomType();
+                    type.Type = GameUtils.GetRandomPiece();
 
                     var entityPacked = _world.Value.PackEntity(newPiece);
                     gameBoard.Board[row, column] = entityPacked;

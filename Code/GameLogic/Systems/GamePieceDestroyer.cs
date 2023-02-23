@@ -28,7 +28,7 @@ public class GamePieceDestroyer : IEcsRunSystem
                     target: _destroyed.Pools.Inc1.Get(entity).Transform,
                     expression: t => t.Scale,
                     toValue: Vector2.Zero,
-                    duration: GameConfig.DESTROY_ANIMATION_TIME);
+                    duration: destroy.WaitTime);
             }
         }
     }

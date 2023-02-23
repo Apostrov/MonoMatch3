@@ -1,4 +1,9 @@
-﻿namespace MonoMatch3.Code.GameLogic.Components;
+﻿using System.Collections.Generic;
+using Leopotam.EcsLite;
+using Microsoft.Xna.Framework;
+using MonoGame.Extended;
+
+namespace MonoMatch3.Code.GameLogic.Components;
 
 public struct Bonus
 {
@@ -18,5 +23,12 @@ public struct BonusSpawn
 public struct Line
 {
     public LineType Type;
+}
+
+public struct LineDestroyer
+{
+    public Vector2 FlyPosition;
+    public Queue<(Vector2 position, EcsPackedEntity packedEntity)> FlyPoints;
+    public Transform2 Transform;
 }
 
