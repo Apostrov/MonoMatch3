@@ -8,4 +8,5 @@ public struct SolvePieceMatch
     public EcsPackedEntity StartPiece;
     public float WaitTime;
     public Action OnDontMatchCallback;
+    public bool IsClicked;
 }

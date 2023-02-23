@@ -75,7 +75,7 @@ public class BonusSpawner : IEcsRunSystem
 
             ref var selected = ref _piecePool.Value.Get(selectedEntity);
             ref var swapped = ref _piecePool.Value.Get(swappedEntity);
-            if (selected.BoardPosition.Column == swapped.BoardPosition.Column)
+            if (selected.BoardPosition.Row == swapped.BoardPosition.Row)
                 return LineType.Column;
         }
 

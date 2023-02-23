@@ -1,4 +1,5 @@
 ﻿using MonoGame.Extended;
+using MonoGame.Extended.Tweening;
 
 namespace MonoMatch3.Code.GameLogic.Components;
 
@@ -16,5 +17,6 @@ public struct GamePieceType
 
 public struct DestroyPiece
 {
+    public Tween Animation;
     public float WaitTime;
 }

@@ -38,10 +38,11 @@ public class Match3Solver : IEcsRunSystem
                 if (solveMatch.WaitTime > 0.0f)
                     continue;
 
-                bonusPlayed |= IsBonusMatch(solveMatch.StartPiece);
+                if (solveMatch.IsClicked)
+                    bonusPlayed |= IsBonusMatch(solveMatch.StartPiece);
 
-                var rowToDestroy = RowDfsSolver(solveMatch.StartPiece, board.Board);
-                var columnToDestroy = ColumnDfsSolver(solveMatch.StartPiece, board.Board);
+                var rowToDestroy = DfsSolver(solveMatch.StartPiece, board.Board, GameUtils.RowMover());
+                var columnToDestroy = DfsSolver(solveMatch.StartPiece, board.Board, GameUtils.ColumnMover());
                 int destroyed = DestroyLine(rowToDestroy);
                 destroyed += DestroyLine(columnToDestroy);
                 MatchCompleted(destroyed, bonusPlayed, ref solveMatch);
@@ -55,8 +56,8 @@ public class Match3Solver : IEcsRunSystem
     {
         if (!startPiece.Unpack(_world.Value, out var startPieceEntity) || !_bonusPool.Value.Has(startPieceEntity))
             return false;
-        
-        if(!_bonusMatchPool.Value.Has(startPieceEntity))
+
+        if (!_bonusMatchPool.Value.Has(startPieceEntity))
             _bonusMatchPool.Value.Add(startPieceEntity);
         return true;
     }
@@ -95,11 +96,6 @@ public class Match3Solver : IEcsRunSystem
             if (!destroyPack.Unpack(_world.Value, out var entity) || _destroyPool.Value.Has(entity))
                 continue;
 
-            ref var piece = ref _piecePool.Value.Get(entity);
-            _shared.Value.Tweener.TweenTo(target: piece.Transform,
-                expression: t => t.Scale,
-                toValue: Vector2.Zero,
-                duration: GameConfig.DESTROY_ANIMATION_TIME);
             _destroyPool.Value.Add(entity).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
             destroyed++;
         }
@@ -107,29 +103,8 @@ public class Match3Solver : IEcsRunSystem
         return destroyed;
     }
 
-
-    private List<EcsPackedEntity> RowDfsSolver(EcsPackedEntity startBlock, EcsPackedEntity[,] board)
-    {
-        return DfsSolver(startBlock, board,
-            (PiecePosition position, ref Stack<PiecePosition> add) =>
-            {
-                add.Push(new PiecePosition(position.Row + 1, position.Column));
-                add.Push(new PiecePosition(position.Row - 1, position.Column));
-            });
-    }
-
-    private List<EcsPackedEntity> ColumnDfsSolver(EcsPackedEntity startBlock, EcsPackedEntity[,] board)
-    {
-        return DfsSolver(startBlock, board,
-            (PiecePosition position, ref Stack<PiecePosition> add) =>
-            {
-                add.Push(new PiecePosition(position.Row, position.Column + 1));
-                add.Push(new PiecePosition(position.Row, position.Column - 1));
-            });
-    }
-
     private List<EcsPackedEntity> DfsSolver(EcsPackedEntity startBlock, EcsPackedEntity[,] board,
-        GetNextPosition nextPosition)
+        GameUtils.GetNextPosition nextPosition)
     {
         if (!startBlock.Unpack(_world.Value, out var startBlockEntity) ||
             _destroyPool.Value.Has(startBlockEntity) ||
@@ -162,6 +137,4 @@ public class Match3Solver : IEcsRunSystem
 
         return toDestroy;
     }
-
-    private delegate void GetNextPosition(PiecePosition position, ref Stack<PiecePosition> toAdd);
 }

@@ -100,7 +100,8 @@ public class SwapPiecesProcessing : IEcsRunSystem
         {
             StartPiece = start,
             WaitTime = GameConfig.SWAP_ANIMATION_TIME,
-            OnDontMatchCallback = Reswap
+            OnDontMatchCallback = Reswap,
+            IsClicked = true
         };
     }
 
