@@ -15,7 +15,9 @@ public class Match3Solver : IEcsRunSystem
     private readonly EcsPoolInject<Components.GamePieceType> _pieceTypePool = default;
     private readonly EcsPoolInject<Components.DestroyPiece> _destroyPool = default;
     private readonly EcsPoolInject<Components.RearrangeBoard> _rearrangePool = default;
-    private readonly EcsPoolInject<Components.LineSpawn> _lineSpawnPool = default;
+    private readonly EcsPoolInject<Components.BonusSpawn> _bonusSpawnPool = default;
+    private readonly EcsPoolInject<Components.Bonus> _bonusPool = default;
+    private readonly EcsPoolInject<Components.BonusMatch> _bonusMatchPool = default;
 
     private readonly EcsSharedInject<SharedData> _shared = default;
     private readonly EcsWorldInject _world = default;
@@ -28,6 +30,7 @@ public class Match3Solver : IEcsRunSystem
         foreach (var boardEntity in _gameBoard.Value)
         {
             ref var board = ref _gameBoard.Pools.Inc1.Get(boardEntity);
+            var bonusPlayed = false;
             foreach (var solveEntity in _solveMatch.Value)
             {
                 ref var solveMatch = ref _solveMatch.Pools.Inc1.Get(solveEntity);
@@ -35,35 +38,51 @@ public class Match3Solver : IEcsRunSystem
                 if (solveMatch.WaitTime > 0.0f)
                     continue;
 
+                bonusPlayed |= IsBonusMatch(solveMatch.StartPiece);
+
                 var rowToDestroy = RowDfsSolver(solveMatch.StartPiece, board.Board);
                 var columnToDestroy = ColumnDfsSolver(solveMatch.StartPiece, board.Board);
                 int destroyed = DestroyLine(rowToDestroy);
                 destroyed += DestroyLine(columnToDestroy);
-                if (destroyed > 0)
-                {
-                    if (destroyed >= GameConfig.LINE_BONUS_COUNT)
-                    {
-                        if (solveMatch.StartPiece.Unpack(_world.Value, out var entity))
-                        {
-                            _lineSpawnPool.Value.Add(_world.Value.NewEntity()) = new Components.LineSpawn
-                            {
-                                LinePosition = _piecePool.Value.Get(entity).BoardPosition,
-                                WaitTime = GameConfig.DESTROY_ANIMATION_TIME
-                            };
-                        }
-                    }
-
-                    _rearrangePool.Value.Add(_world.Value.NewEntity()).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
-                }
-                else
-                {
-                    solveMatch.OnDontMatchCallback?.Invoke();
-                }
+                MatchCompleted(destroyed, bonusPlayed, ref solveMatch);
 
                 _solveMatch.Pools.Inc1.Del(solveEntity);
             }
         }
     }
+
+    private bool IsBonusMatch(EcsPackedEntity startPiece)
+    {
+        if (!startPiece.Unpack(_world.Value, out var startPieceEntity) || !_bonusPool.Value.Has(startPieceEntity))
+            return false;
+        
+        if(!_bonusMatchPool.Value.Has(startPieceEntity))
+            _bonusMatchPool.Value.Add(startPieceEntity);
+        return true;
+    }
+
+    private void MatchCompleted(int destroyedNumber, bool bonusPlayed, ref Components.SolvePieceMatch solveMatch)
+    {
+        if (destroyedNumber > 0 || bonusPlayed)
+        {
+            if (solveMatch.StartPiece.Unpack(_world.Value, out var entity))
+            {
+                _bonusSpawnPool.Value.Add(_world.Value.NewEntity()) = new Components.BonusSpawn
+                {
+                    Destroyed = destroyedNumber,
+                    Position = _piecePool.Value.Get(entity).BoardPosition,
+                    WaitTime = GameConfig.DESTROY_ANIMATION_TIME
+                };
+            }
+
+            _rearrangePool.Value.Add(_world.Value.NewEntity()).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
+        }
+        else
+        {
+            solveMatch.OnDontMatchCallback?.Invoke();
+        }
+    }
+
 
     private int DestroyLine(List<EcsPackedEntity> line)
     {
