@@ -11,6 +11,8 @@ public class LineDestroyerFlyProcessing : IEcsRunSystem
     private readonly EcsFilterInject<Inc<Components.LineDestroyer>> _destroyer = default;
 
     private readonly EcsPoolInject<Components.DestroyPiece> _destroyPool = default;
+    private readonly EcsPoolInject<Components.Bonus> _bonus = default;
+    private readonly EcsPoolInject<Components.BonusMatch> _bonusMatch = default;
 
     private readonly EcsWorldInject _world = default;
     private readonly EcsSharedInject<SharedData> _shared = default;
@@ -32,10 +34,15 @@ public class LineDestroyerFlyProcessing : IEcsRunSystem
                 var flyPoint = destroyer.FlyPoints.Dequeue();
                 destroyer.FlyPosition = flyPoint.position;
                 if (flyPoint.packedEntity.Unpack(_world.Value, out var flyEntity) && !_destroyPool.Value.Has(flyEntity))
+                {
+                    if (_bonus.Value.Has(flyEntity) && !_bonusMatch.Value.Has(flyEntity))
+                        _bonusMatch.Value.Add(flyEntity);
                     _destroyPool.Value.Add(flyEntity).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
+                }
             }
 
-            if (destroyer.FlyPoints.Count == 0 && IsAlmostSameVector(destroyer.Transform.Position, destroyer.FlyPosition))
+            if (destroyer.FlyPoints.Count == 0 &&
+                IsAlmostSameVector(destroyer.Transform.Position, destroyer.FlyPosition))
             {
                 _destroyer.Pools.Inc1.Del(destroyerEntity);
                 break;

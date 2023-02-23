@@ -8,7 +8,6 @@ public class BonusSpawner : IEcsRunSystem
 {
     private readonly EcsFilterInject<Inc<Components.BonusSpawn>> _bonusSpawn = default;
     private readonly EcsFilterInject<Inc<Components.GameBoard>> _gameBoard = default;
-    private readonly EcsFilterInject<Inc<Components.LastSwap>> _lastSwap = default;
 
     private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
     private readonly EcsPoolInject<Components.Bonus> _bonusPool = default;
@@ -28,7 +27,7 @@ public class BonusSpawner : IEcsRunSystem
             bonusSpawn.WaitTime -= _shared.Value.GameTime.GetElapsedSeconds();
             if (bonusSpawn.WaitTime <= 0.0f)
             {
-                if (bonusSpawn.Destroyed == GameConfig.LINE_BONUS_COUNT)
+                if (bonusSpawn.Destroyed >= GameConfig.LINE_BONUS_COUNT)
                 {
                     var pieceEntity = _world.Value.NewEntity();
                     _linePool.Value.Add(pieceEntity).Type = GameUtils.GetRandomLine();

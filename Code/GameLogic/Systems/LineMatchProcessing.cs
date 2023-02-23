@@ -20,9 +20,6 @@ public class LineMatchProcessing : IEcsRunSystem
 
     public void Run(IEcsSystems systems)
     {
-        if (_lineMatch.Value.GetEntitiesCount() < 1)
-            return;
-
         foreach (var lineMatchEntity in _lineMatch.Value)
         {
             ref var line = ref _lineMatch.Pools.Inc1.Get(lineMatchEntity);
@@ -66,7 +63,7 @@ public class LineMatchProcessing : IEcsRunSystem
                 continue;
 
             var entityPacked = board[position.Row, position.Column];
-            if (!entityPacked.Unpack(_world.Value, out var destroyEntity) || _destroyPool.Value.Has(destroyEntity))
+            if (!entityPacked.Unpack(_world.Value, out var destroyEntity))
                 continue;
 
             var drawPosition = _lineMatch.Pools.Inc2.Get(destroyEntity).Transform.Position;
