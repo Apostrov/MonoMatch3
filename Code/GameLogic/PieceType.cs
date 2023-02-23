@@ -12,7 +12,16 @@ public enum PieceType
 
 public enum LineType
 {
-    Row = 0,
-    Column,
+    Column = 0,
+    Row,
+    COUNT
+}
+
+public enum LineDestroyerType
+{
+    Up,
+    Down,
+    Left,
+    Right,
     COUNT
 }

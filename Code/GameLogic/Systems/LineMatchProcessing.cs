@@ -32,13 +32,13 @@ public class LineMatchProcessing : IEcsRunSystem
                 ref var gameBoard = ref _gameBoard.Pools.Inc1.Get(gameBoardEntity);
                 switch (line.Type)
                 {
-                    case LineType.Column:
-                        LineDestroyer(linePiece, gameBoard.Board, LeftMover());
-                        LineDestroyer(linePiece, gameBoard.Board, RightMover());
-                        break;
                     case LineType.Row:
-                        LineDestroyer(linePiece, gameBoard.Board, UpMover());
-                        LineDestroyer(linePiece, gameBoard.Board, DownMover());
+                        LineDestroyer(linePiece, gameBoard.Board, LeftMover(), LineDestroyerType.Left);
+                        LineDestroyer(linePiece, gameBoard.Board, RightMover(), LineDestroyerType.Right);
+                        break;
+                    case LineType.Column:
+                        LineDestroyer(linePiece, gameBoard.Board, UpMover(), LineDestroyerType.Up);
+                        LineDestroyer(linePiece, gameBoard.Board, DownMover(), LineDestroyerType.Down);
                         break;
                 }
             }
@@ -50,7 +50,7 @@ public class LineMatchProcessing : IEcsRunSystem
     }
 
     private void LineDestroyer(Components.GamePiece startBlock, EcsPackedEntity[,] board,
-        GameUtils.GetNextPosition nextPosition)
+        GameUtils.GetNextPosition nextPosition, LineDestroyerType type)
     {
         var toDestroy = new List<(Vector2, EcsPackedEntity)>();
         var nextPiece = new Stack<PiecePosition>();
@@ -75,12 +75,13 @@ public class LineMatchProcessing : IEcsRunSystem
             nextPosition(position, ref nextPiece);
         }
 
-        SpawnDestroyer(startBlock.Transform.Position, toDestroy);
+        SpawnDestroyer(startBlock.Transform.Position, toDestroy, type);
     }
 
-    private void SpawnDestroyer(Vector2 spawnPosition, List<(Vector2, EcsPackedEntity)> points)
+    private void SpawnDestroyer(Vector2 spawnPosition, List<(Vector2, EcsPackedEntity)> points, LineDestroyerType type)
     {
         ref var destroyer = ref _destroyer.Value.Add(_world.Value.NewEntity());
+        destroyer.Type = type;
         destroyer.FlyPosition = spawnPosition;
         destroyer.FlyPoints = new Queue<(Vector2, EcsPackedEntity)>(points);
         destroyer.Transform = new Transform2(spawnPosition);

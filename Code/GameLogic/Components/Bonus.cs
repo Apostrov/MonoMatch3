@@ -27,6 +27,7 @@ public struct Line
 
 public struct LineDestroyer
 {
+    public LineDestroyerType Type;
     public Vector2 FlyPosition;
     public Queue<(Vector2 position, EcsPackedEntity packedEntity)> FlyPoints;
     public Transform2 Transform;

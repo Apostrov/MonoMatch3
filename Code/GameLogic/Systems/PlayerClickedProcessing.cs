@@ -1,7 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
-using MonoGame.Extended;
 using MonoGame.Extended.Input;
 using MonoGame.Extended.Tweening;
 
