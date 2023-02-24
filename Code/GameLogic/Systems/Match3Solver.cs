@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
-public class Match3Solver : IEcsRunSystem
+public class Match3Solver : IEcsInitSystem, IEcsRunSystem
 {
     private readonly EcsFilterInject<Inc<Components.GameBoard>> _gameBoard = default;
     private readonly EcsFilterInject<Inc<Components.SolvePieceMatch>> _solveMatch = default;
@@ -21,6 +20,13 @@ public class Match3Solver : IEcsRunSystem
 
     private readonly EcsSharedInject<SharedData> _shared = default;
     private readonly EcsWorldInject _world = default;
+
+    private Algorithms.DFS _dfs;
+
+    public void Init(IEcsSystems systems)
+    {
+        _dfs = new Algorithms.ColorDFS(_piecePool.Value, _world.Value, _pieceTypePool.Value);
+    }
 
     public void Run(IEcsSystems systems)
     {
@@ -41,8 +47,8 @@ public class Match3Solver : IEcsRunSystem
                 if (solveMatch.IsClicked)
                     bonusPlayed |= IsBonusMatch(solveMatch.StartPiece);
 
-                var rowToDestroy = DfsSolver(solveMatch.StartPiece, board.Board, RowMover());
-                var columnToDestroy = DfsSolver(solveMatch.StartPiece, board.Board, ColumnMover());
+                var rowToDestroy = _dfs.Solve(solveMatch.StartPiece, board.Board, RowMover());
+                var columnToDestroy = _dfs.Solve(solveMatch.StartPiece, board.Board, ColumnMover());
                 int destroyed = DestroyLine(rowToDestroy);
                 destroyed += DestroyLine(columnToDestroy);
                 MatchCompleted(destroyed, bonusPlayed, ref solveMatch);
@@ -85,17 +91,16 @@ public class Match3Solver : IEcsRunSystem
     }
 
 
-    private int DestroyLine(List<EcsPackedEntity> line)
+    private int DestroyLine(List<int> entities)
     {
-        if (line.Count < GameConfig.MATCH_COUNT)
+        if (entities.Count < GameConfig.MATCH_COUNT)
             return 0;
 
         int destroyed = 0;
-        foreach (var destroyPack in line)
+        foreach (var entity in entities)
         {
-            if (!destroyPack.Unpack(_world.Value, out var entity) || _destroyPool.Value.Has(entity))
+            if (_destroyPool.Value.Has(entity))
                 continue;
-
             _destroyPool.Value.Add(entity).WaitTime = GameConfig.DESTROY_ANIMATION_TIME;
             destroyed++;
         }
@@ -103,42 +108,7 @@ public class Match3Solver : IEcsRunSystem
         return destroyed;
     }
 
-    private List<EcsPackedEntity> DfsSolver(EcsPackedEntity startBlock, EcsPackedEntity[,] board,
-        GameUtils.GetNextPosition nextPosition)
-    {
-        if (!startBlock.Unpack(_world.Value, out var startBlockEntity) ||
-            _destroyPool.Value.Has(startBlockEntity) ||
-            !_pieceTypePool.Value.Has(startBlockEntity))
-            return new List<EcsPackedEntity>();
-
-        var toDestroy = new List<EcsPackedEntity>();
-        var dfsStack = new Stack<PiecePosition>();
-        var discovered = new bool[board.GetLength(0), board.GetLength(1)];
-        var color = _pieceTypePool.Value.Get(startBlockEntity).Type;
-        ref var piece = ref _piecePool.Value.Get(startBlockEntity);
-        dfsStack.Push(piece.BoardPosition);
-        while (dfsStack.Count > 0)
-        {
-            var position = dfsStack.Pop();
-            if (position.Row < 0 || position.Column < 0 ||
-                position.Row >= board.GetLength(0) || position.Column >= board.GetLength(1) ||
-                discovered[position.Row, position.Column])
-                continue;
-
-            var entityPacked = board[position.Row, position.Column];
-            if (!entityPacked.Unpack(_world.Value, out var entity) || _destroyPool.Value.Has(entity) ||
-                !_pieceTypePool.Value.Has(entity) || _pieceTypePool.Value.Get(entity).Type != color)
-                continue;
-
-            toDestroy.Add(entityPacked);
-            discovered[position.Row, position.Column] = true;
-            nextPosition(position, ref dfsStack);
-        }
-
-        return toDestroy;
-    }
-    
-    private static GameUtils.GetNextPosition RowMover()
+    private Algorithms.DFS.GetNextPosition RowMover()
     {
         return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
         {
@@ -147,7 +117,7 @@ public class Match3Solver : IEcsRunSystem
         };
     }
 
-    private static GameUtils.GetNextPosition ColumnMover()
+    private Algorithms.DFS.GetNextPosition ColumnMover()
     {
         return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
         {

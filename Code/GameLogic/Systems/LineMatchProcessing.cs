@@ -6,7 +6,7 @@ using MonoGame.Extended;
 
 namespace MonoMatch3.Code.GameLogic.Systems;
 
-public class LineMatchProcessing : IEcsRunSystem
+public class LineMatchProcessing : IEcsInitSystem, IEcsRunSystem
 {
     private readonly EcsFilterInject<Inc<Components.Line, Components.GamePiece, Components.BonusMatch>> _lineMatch =
         default;
@@ -18,24 +18,30 @@ public class LineMatchProcessing : IEcsRunSystem
 
     private readonly EcsWorldInject _world = default;
 
+    private Algorithms.DFS _dfs;
+
+    public void Init(IEcsSystems systems)
+    {
+        _dfs = new Algorithms.SimpleDFS(_lineMatch.Pools.Inc2, _world.Value);
+    }
+
     public void Run(IEcsSystems systems)
     {
         foreach (var lineMatchEntity in _lineMatch.Value)
         {
             ref var line = ref _lineMatch.Pools.Inc1.Get(lineMatchEntity);
-            ref var linePiece = ref _lineMatch.Pools.Inc2.Get(lineMatchEntity);
             foreach (var gameBoardEntity in _gameBoard.Value)
             {
                 ref var gameBoard = ref _gameBoard.Pools.Inc1.Get(gameBoardEntity);
                 switch (line.Type)
                 {
                     case LineType.Row:
-                        LineDestroyer(linePiece, gameBoard.Board, LeftMover(), LineDestroyerType.Left);
-                        LineDestroyer(linePiece, gameBoard.Board, RightMover(), LineDestroyerType.Right);
+                        LineDestroyer(lineMatchEntity, gameBoard.Board, LeftMover(), LineDestroyerType.Left);
+                        LineDestroyer(lineMatchEntity, gameBoard.Board, RightMover(), LineDestroyerType.Right);
                         break;
                     case LineType.Column:
-                        LineDestroyer(linePiece, gameBoard.Board, UpMover(), LineDestroyerType.Up);
-                        LineDestroyer(linePiece, gameBoard.Board, DownMover(), LineDestroyerType.Down);
+                        LineDestroyer(lineMatchEntity, gameBoard.Board, UpMover(), LineDestroyerType.Up);
+                        LineDestroyer(lineMatchEntity, gameBoard.Board, DownMover(), LineDestroyerType.Down);
                         break;
                 }
             }
@@ -46,36 +52,23 @@ public class LineMatchProcessing : IEcsRunSystem
         }
     }
 
-    private void LineDestroyer(Components.GamePiece startBlock, EcsPackedEntity[,] board,
-        GameUtils.GetNextPosition nextPosition, LineDestroyerType type)
+    private void LineDestroyer(int startBlockEntity, EcsPackedEntity[,] board,
+        Algorithms.DFS.GetNextPosition nextPosition, LineDestroyerType type)
     {
-        var toDestroy = new List<(Vector2, EcsPackedEntity)>();
-        var nextPiece = new Stack<PiecePosition>();
-        var discovered = new bool[board.GetLength(0), board.GetLength(1)];
-        nextPiece.Push(startBlock.BoardPosition);
-
-        while (nextPiece.Count > 0)
+        var entities = _dfs.Solve(_world.Value.PackEntity(startBlockEntity), board, nextPosition);
+        (Vector2, EcsPackedEntity)[] points = new (Vector2, EcsPackedEntity)[entities.Count];
+        for (int i = 0; i < entities.Count; i++)
         {
-            var position = nextPiece.Pop();
-            if (position.Row < 0 || position.Column < 0 ||
-                position.Row >= board.GetLength(0) || position.Column >= board.GetLength(1) ||
-                discovered[position.Row, position.Column])
-                continue;
-
-            var entityPacked = board[position.Row, position.Column];
-            if (!entityPacked.Unpack(_world.Value, out var destroyEntity))
-                continue;
-
-            var drawPosition = _lineMatch.Pools.Inc2.Get(destroyEntity).Transform.Position;
-            toDestroy.Add((drawPosition, entityPacked));
-            discovered[position.Row, position.Column] = true;
-            nextPosition(position, ref nextPiece);
+            var entity = entities[i];
+            var drawPosition = _lineMatch.Pools.Inc2.Get(entity).Transform.Position;
+            points[i] = (drawPosition, _world.Value.PackEntity(entity));
         }
 
-        SpawnDestroyer(startBlock.Transform.Position, toDestroy, type);
+        ref var piece = ref _lineMatch.Pools.Inc2.Get(startBlockEntity);
+        SpawnDestroyer(piece.Transform.Position, points, type);
     }
 
-    private void SpawnDestroyer(Vector2 spawnPosition, List<(Vector2, EcsPackedEntity)> points, LineDestroyerType type)
+    private void SpawnDestroyer(Vector2 spawnPosition, (Vector2, EcsPackedEntity)[] points, LineDestroyerType type)
     {
         ref var destroyer = ref _destroyer.Value.Add(_world.Value.NewEntity());
         destroyer.Type = type;
@@ -84,7 +77,7 @@ public class LineMatchProcessing : IEcsRunSystem
         destroyer.Transform = new Transform2(spawnPosition);
     }
 
-    private static GameUtils.GetNextPosition LeftMover()
+    private Algorithms.DFS.GetNextPosition LeftMover()
     {
         return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
         {
@@ -92,7 +85,7 @@ public class LineMatchProcessing : IEcsRunSystem
         };
     }
 
-    private static GameUtils.GetNextPosition RightMover()
+    private Algorithms.DFS.GetNextPosition RightMover()
     {
         return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
         {
@@ -100,7 +93,7 @@ public class LineMatchProcessing : IEcsRunSystem
         };
     }
 
-    private static GameUtils.GetNextPosition UpMover()
+    private Algorithms.DFS.GetNextPosition UpMover()
     {
         return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
         {
@@ -108,7 +101,7 @@ public class LineMatchProcessing : IEcsRunSystem
         };
     }
 
-    private static GameUtils.GetNextPosition DownMover()
+    private Algorithms.DFS.GetNextPosition DownMover()
     {
         return (PiecePosition piecePosition, ref Stack<PiecePosition> add) =>
         {

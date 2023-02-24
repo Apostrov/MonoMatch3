@@ -16,6 +16,4 @@ public static class GameUtils
     {
         return (LineType)Random.Next(0, (int)LineType.COUNT);
     }
-
-    public delegate void GetNextPosition(PiecePosition position, ref Stack<PiecePosition> toAdd);
 }
