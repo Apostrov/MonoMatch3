@@ -2,6 +2,7 @@
 using Leopotam.EcsLite;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
+using MonoGame.Extended.Tweening;
 
 namespace MonoMatch3.Code.GameLogic.Components;
 
@@ -35,4 +36,10 @@ public struct LineDestroyer
 
 public struct Bomb
 {
+}
+
+public struct BombExplosion
+{
+    public float WaitTime;
+    public Tween Animation;
 }

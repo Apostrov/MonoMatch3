@@ -112,7 +112,7 @@ namespace MonoMatch3.Code
                 .Add(new GameLogic.Systems.GamePieceDestroyer())
                 .Add(new GameLogic.Systems.LineMatchProcessing())
                 .Add(new GameLogic.Systems.LineDestroyerFlyProcessing())
-                .Add(new GameLogic.Systems.BonusMatchProcessing())
+                .Add(new GameLogic.Systems.BombMatchProcessing())
                 .Add(new GameLogic.Systems.GameTimeDecreaser())
 
                 // ui
