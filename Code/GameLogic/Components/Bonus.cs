@@ -33,3 +33,6 @@ public struct LineDestroyer
     public Transform2 Transform;
 }
 
+public struct Bomb
+{
+}

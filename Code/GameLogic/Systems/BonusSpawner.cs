@@ -12,6 +12,7 @@ public class BonusSpawner : IEcsRunSystem
     private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
     private readonly EcsPoolInject<Components.Bonus> _bonusPool = default;
     private readonly EcsPoolInject<Components.Line> _linePool = default;
+    private readonly EcsPoolInject<Components.Bomb> _bombPool = default;
 
     private readonly EcsSharedInject<SharedData> _shared = default;
     private readonly EcsWorldInject _world = default;
@@ -27,10 +28,17 @@ public class BonusSpawner : IEcsRunSystem
             bonusSpawn.WaitTime -= _shared.Value.GameTime.GetElapsedSeconds();
             if (bonusSpawn.WaitTime <= 0.0f)
             {
-                if (bonusSpawn.Destroyed >= GameConfig.LINE_BONUS_COUNT)
+                if (bonusSpawn.Destroyed == GameConfig.LINE_BONUS_COUNT)
                 {
                     var pieceEntity = _world.Value.NewEntity();
                     _linePool.Value.Add(pieceEntity).Type = GameUtils.GetRandomLine();
+                    SpawnBonus(pieceEntity, bonusSpawn);
+                }
+
+                if (bonusSpawn.Destroyed >= GameConfig.BOMB_BONUS_COUNT)
+                {
+                    var pieceEntity = _world.Value.NewEntity();
+                    _bombPool.Value.Add(pieceEntity);
                     SpawnBonus(pieceEntity, bonusSpawn);
                 }
 

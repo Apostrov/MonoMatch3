@@ -9,6 +9,7 @@ public class RearrangeBoardProcessing : IEcsRunSystem
     private readonly EcsFilterInject<Inc<Components.RearrangeBoard>> _rearrange = default;
     private readonly EcsFilterInject<Inc<Components.GameBoard>> _board = default;
     private readonly EcsFilterInject<Inc<Components.DestroyPiece>> _destroy = default;
+    private readonly EcsFilterInject<Inc<Components.LineDestroyer>> _destroyer = default;
 
     private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
     private readonly EcsPoolInject<Components.RearrangePiece> _rearrangePiecePool = default;
@@ -22,12 +23,14 @@ public class RearrangeBoardProcessing : IEcsRunSystem
     {
         if (_rearrange.Value.GetEntitiesCount() < 1)
             return;
-        
+
         foreach (var rearrangeEntity in _rearrange.Value)
         {
             ref var rearrange = ref _rearrange.Pools.Inc1.Get(rearrangeEntity);
             rearrange.WaitTime -= _shared.Value.GameTime.GetElapsedSeconds();
-            if (rearrange.WaitTime > 0.0f || _destroy.Value.GetEntitiesCount() > 0)
+            if (rearrange.WaitTime > 0.0f || 
+                _destroy.Value.GetEntitiesCount() > 0 ||
+                _destroyer.Value.GetEntitiesCount() > 0)
                 continue;
             _rearrange.Pools.Inc1.Del(rearrangeEntity);
         }
