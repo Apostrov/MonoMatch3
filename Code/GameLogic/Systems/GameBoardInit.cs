@@ -1,5 +1,4 @@
-﻿using System;
-using Leopotam.EcsLite;
+﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using MonoGame.Extended;
 
@@ -8,28 +7,23 @@ namespace MonoMatch3.Code.GameLogic.Systems;
 public class GameBoardInit : IEcsInitSystem
 {
     private readonly EcsFilterInject<Inc<Components.GameBoard>> _existedBoards = default;
+    private readonly EcsFilterInject<Inc<Components.Score>> _score = default;
+    private readonly EcsFilterInject<Inc<Components.GameTimeRemaining>> _time = default;
 
     private readonly EcsPoolInject<Components.GameBoard> _gameBoardPool = default;
     private readonly EcsPoolInject<Components.GamePiece> _piecePool = default;
     private readonly EcsPoolInject<Components.GamePieceType> _typePool = default;
-    private readonly EcsPoolInject<Components.SolvePieceMatch> _solveMatch = default;
+    private readonly EcsPoolInject<Components.SolvePieceMatch> _solveMatchPool = default;
 
     private readonly EcsSharedInject<SharedData> _shared = default;
     private readonly EcsWorldInject _world = default;
 
-    private Random _random;
-
     public void Init(IEcsSystems systems)
     {
-        _random = new Random();
-
         // delete existed boards
-        if (_existedBoards.Value.GetEntitiesCount() > 0)
+        foreach (var entity in _existedBoards.Value)
         {
-            foreach (var entity in _existedBoards.Value)
-            {
-                _world.Value.DelEntity(entity);
-            }
+            _world.Value.DelEntity(entity);
         }
 
         // create board
@@ -59,8 +53,24 @@ public class GameBoardInit : IEcsInitSystem
                 gameBoard.Board[row, column] = entityPacked;
 
                 // solve match
-                _solveMatch.Value.Add(_world.Value.NewEntity()).StartPiece = entityPacked;
+                _solveMatchPool.Value.Add(_world.Value.NewEntity()).StartPiece = entityPacked;
             }
         }
+
+        // delete existed game scores
+        foreach (var entity in _score.Value)
+        {
+            _score.Pools.Inc1.Del(entity);
+        }
+
+        foreach (var entity in _time.Value)
+        {
+            _time.Pools.Inc1.Del(entity);
+        }
+
+        // create game scores
+        var gameScoresEntity = _world.Value.NewEntity();
+        _score.Pools.Inc1.Add(gameScoresEntity).Value = 0;
+        _time.Pools.Inc1.Add(gameScoresEntity).Value = GameConfig.GAME_TIME;
     }
 }

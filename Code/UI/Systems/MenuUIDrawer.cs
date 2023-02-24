@@ -34,9 +34,10 @@ public class MenuUIDrawer : IEcsInitSystem, IEcsRunSystem
 
         // Label
         var labelText = "MonoMatch3";
+        var textSize = _shared.Value.Font.MeasureString(labelText);
         var labelPosition =
-            new Vector2(graphicsDevice.Viewport.Width / 2f - _shared.Value.Font.MeasureString(labelText).X / 2f,
-                graphicsDevice.Viewport.Height / 2f - buttonSize.Y / 2f - 100f);
+            new Vector2(graphicsDevice.Viewport.Width / 2f - textSize.X / 2f,
+                graphicsDevice.Viewport.Height / 2f - textSize.Y / 2f - 100f);
         _gameNameLabel = new Model.Label(labelText, labelPosition);
     }
 

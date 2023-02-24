@@ -59,6 +59,7 @@ namespace MonoMatch3.Code
                 .Add(new GameLogic.Systems.LineMatchProcessing())
                 .Add(new GameLogic.Systems.LineDestroyerFlyProcessing())
                 .Add(new GameLogic.Systems.BonusMatchProcessing())
+                .Add(new GameLogic.Systems.GameTimeDecreaser())
 
                 // ui
                 .Add(new UI.Systems.PlayButtonClickedTracker())
@@ -92,6 +93,7 @@ namespace MonoMatch3.Code
 
                 // ui
                 .Add(new UI.Systems.MenuUIDrawer())
+                .Add(new UI.Systems.GameplayUIDrawer())
 
                 // init
                 .Inject()

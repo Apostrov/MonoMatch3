@@ -15,4 +15,5 @@ public static class GameConfig
     public const float LINE_DESTROYER_FLY_SPEED = 800f;
     public const int BOMB_BONUS_COUNT = 5;
     public const int BOMB_RADIUS = 1;
+    public const float GAME_TIME = 60f;
 }
