@@ -8,14 +8,13 @@ namespace MonoMatch3.Code.GameLogic.Systems;
 
 public class PlayerClickedProcessing : IEcsRunSystem
 {
-    private readonly EcsFilterInject<Inc<Components.GameplayState>> _gameplay;
+    private readonly EcsFilterInject<Inc<Components.GameplayState>> _gameplay = default;
     private readonly EcsFilterInject<Inc<Components.GamePiece>, Exc<Components.DestroyPiece>> _pieces = default;
     private readonly EcsFilterInject<Inc<Components.Selected>> _selected = default;
     private readonly EcsFilterInject<Inc<Components.SwapWith>> _swapWait = default;
     private readonly EcsFilterInject<Inc<Components.RearrangePiece>> _rearrangePiece = default;
 
     private readonly EcsSharedInject<SharedData> _shared = default;
-    private readonly EcsWorldInject _world = default;
 
     public void Run(IEcsSystems systems)
     {

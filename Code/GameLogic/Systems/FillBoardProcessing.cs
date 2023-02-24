@@ -35,9 +35,8 @@ public class FillBoardProcessing : IEcsRunSystem
                         continue;
 
                     var newPiece = _world.Value.NewEntity();
-                    var startPosition = DrawLogic.DrawUtils.GetTileScreenPosition(-5, column,
-                        _shared.Value.GraphicsDevice,
-                        tileSize, _shared.Value.BoardSize);
+                    var startPosition = DrawLogic.DrawUtils.GetTileScreenPosition(GameConfig.SPAWN_PIECE_ROW, column,
+                        _shared.Value.GraphicsDevice, tileSize);
                     ref var piece = ref _piecePool.Value.Add(newPiece);
                     piece.BoardPosition.Column = column;
                     piece.BoardPosition.Row = row;
@@ -51,8 +50,7 @@ public class FillBoardProcessing : IEcsRunSystem
                     gameBoard.Board[row, column] = entityPacked;
 
                     var endPosition = DrawLogic.DrawUtils.GetTileScreenPosition(row, column,
-                        _shared.Value.GraphicsDevice,
-                        tileSize, _shared.Value.BoardSize);
+                        _shared.Value.GraphicsDevice, tileSize);
                     _shared.Value.Tweener.TweenTo(
                         target: piece.Transform,
                         expression: t => t.Position,
