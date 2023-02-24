@@ -16,5 +16,4 @@ public class SharedData
     // game logic
     public Tweener Tweener;
     public GameTime GameTime;
-    public int BoardSize;
 }

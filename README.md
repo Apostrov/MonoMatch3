@@ -1,4 +1,4 @@
-﻿# Monomatch3
+﻿# MonoMatch3
 Simple Match-3 game written with MonoGame and LeoECSLite
 
 ## Based on

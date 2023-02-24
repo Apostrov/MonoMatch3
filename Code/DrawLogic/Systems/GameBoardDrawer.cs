@@ -24,17 +24,16 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
 
     public void Run(IEcsSystems systems)
     {
-        if(_gameplay.Value.GetEntitiesCount() < 1)
+        if (_gameplay.Value.GetEntitiesCount() < 1)
             return;
-        
+
         _shared.Value.SpriteBatch.Begin();
 
-        for (int row = 0; row < _shared.Value.BoardSize; row++)
+        for (int row = 0; row < GameConfig.BOARD_SIZE; row++)
         {
-            for (int column = 0; column < _shared.Value.BoardSize; column++)
+            for (int column = 0; column < GameConfig.BOARD_SIZE; column++)
             {
-                var position = DrawUtils.GetTileScreenPosition(row, column, _shared.Value.GraphicsDevice, _tileSize,
-                    _shared.Value.BoardSize);
+                var position = DrawUtils.GetTileScreenPosition(row, column, _shared.Value.GraphicsDevice, _tileSize);
                 _shared.Value.SpriteBatch.Draw(_backgroundTile, position);
             }
         }

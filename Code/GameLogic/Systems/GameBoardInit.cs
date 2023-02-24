@@ -28,18 +28,18 @@ public class GameBoardInit : IEcsInitSystem
 
         // create board
         ref var gameBoard = ref _gameBoardPool.Value.Add(_world.Value.NewEntity());
-        gameBoard.Board = new EcsPackedEntity[_shared.Value.BoardSize, _shared.Value.BoardSize];
+        gameBoard.Board = new EcsPackedEntity[GameConfig.BOARD_SIZE, GameConfig.BOARD_SIZE];
         var tileSize = DrawLogic.DrawUtils.GetTileSize(_shared.Value.TilesAtlas);
 
         // fill board
-        for (int row = 0; row < _shared.Value.BoardSize; row++)
+        for (int row = 0; row < GameConfig.BOARD_SIZE; row++)
         {
-            for (int column = 0; column < _shared.Value.BoardSize; column++)
+            for (int column = 0; column < GameConfig.BOARD_SIZE; column++)
             {
                 var pieceEntity = _world.Value.NewEntity();
 
                 var position = DrawLogic.DrawUtils.GetTileScreenPosition(row, column, _shared.Value.GraphicsDevice,
-                    tileSize, _shared.Value.BoardSize);
+                    tileSize);
                 ref var piece = ref _piecePool.Value.Add(pieceEntity);
                 piece.BoardPosition.Column = column;
                 piece.BoardPosition.Row = row;

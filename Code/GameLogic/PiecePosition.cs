@@ -1,4 +1,5 @@
-﻿namespace MonoMatch3.Code.GameLogic;
+﻿#nullable enable
+namespace MonoMatch3.Code.GameLogic;
 
 public struct PiecePosition
 {

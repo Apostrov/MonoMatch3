@@ -16,13 +16,12 @@ public static class DrawUtils
         return new Point(atlas.Width / ATLAS_SIZE, atlas.Height / ATLAS_SIZE);
     }
 
-    public static Vector2 GetTileScreenPosition(int row, int column, GraphicsDevice graphicsDevice, Point tileSize,
-        int boardSize)
+    public static Vector2 GetTileScreenPosition(int row, int column, GraphicsDevice graphicsDevice, Point tileSize)
     {
         int centerX = graphicsDevice.Viewport.Width / 2 + tileSize.X / 2;
         int centerY = graphicsDevice.Viewport.Height / 2 + tileSize.Y / 2;
-        int startX = centerX - tileSize.X * boardSize / 2;
-        int startY = centerY - tileSize.Y * boardSize / 2;
+        int startX = centerX - tileSize.X * GameConfig.BOARD_SIZE / 2;
+        int startY = centerY - tileSize.Y * GameConfig.BOARD_SIZE / 2;
         return new Vector2(startX + column * tileSize.X, startY + row * tileSize.Y);
     }
 }

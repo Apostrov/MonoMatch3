@@ -29,7 +29,7 @@ public class RearrangeBoardProcessing : IEcsRunSystem
         {
             ref var rearrange = ref _rearrange.Pools.Inc1.Get(rearrangeEntity);
             rearrange.WaitTime -= _shared.Value.GameTime.GetElapsedSeconds();
-            if (rearrange.WaitTime > 0.0f || 
+            if (rearrange.WaitTime > 0.0f ||
                 _destroy.Value.GetEntitiesCount() > 0 ||
                 _destroyer.Value.GetEntitiesCount() > 0 ||
                 _explosion.Value.GetEntitiesCount() > 0)
@@ -66,7 +66,7 @@ public class RearrangeBoardProcessing : IEcsRunSystem
                         ref var nextPiece = ref _piecePool.Value.Get(nextPieceEntity);
                         nextPiece.BoardPosition = new PiecePosition(row, column);
                         var position = DrawLogic.DrawUtils.GetTileScreenPosition(row, column,
-                            _shared.Value.GraphicsDevice, tileSize, _shared.Value.BoardSize);
+                            _shared.Value.GraphicsDevice, tileSize);
 
                         if (_rearrangePiecePool.Value.Has(nextPieceEntity))
                         {
@@ -93,10 +93,5 @@ public class RearrangeBoardProcessing : IEcsRunSystem
 
             _fillBoard.Value.Add(_world.Value.NewEntity());
         }
-    }
-
-    private void RearrangeBoard()
-    {
-        
     }
 }

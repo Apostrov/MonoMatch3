@@ -54,8 +54,8 @@ public class BonusSpawner : IEcsRunSystem
             ref var gameBoard = ref _gameBoard.Pools.Inc1.Get(gameBoardEntity);
             int row = bonusSpawn.Position.Row, column = bonusSpawn.Position.Column;
             var tileSize = DrawLogic.DrawUtils.GetTileSize(_shared.Value.TilesAtlas);
-            var position = DrawLogic.DrawUtils.GetTileScreenPosition(row, column, _shared.Value.GraphicsDevice,
-                tileSize, _shared.Value.BoardSize);
+            var position =
+                DrawLogic.DrawUtils.GetTileScreenPosition(row, column, _shared.Value.GraphicsDevice, tileSize);
 
             ref var piece = ref _piecePool.Value.Add(pieceEntity);
             piece.BoardPosition.Column = column;

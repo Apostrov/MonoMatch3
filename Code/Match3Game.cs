@@ -10,8 +10,6 @@ namespace MonoMatch3.Code
 {
     public class Match3Game : Game
     {
-        private const int BOARD_SIZE = 8;
-
         private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -32,8 +30,7 @@ namespace MonoMatch3.Code
             _sharedData = new SharedData
             {
                 GraphicsDevice = GraphicsDevice,
-                Tweener = new Tweener(),
-                BoardSize = BOARD_SIZE
+                Tweener = new Tweener()
             };
             EcsInit();
         }
