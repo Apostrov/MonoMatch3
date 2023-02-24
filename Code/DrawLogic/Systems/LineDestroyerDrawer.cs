@@ -9,6 +9,7 @@ namespace MonoMatch3.Code.DrawLogic.Systems;
 
 public class LineDestroyerDrawer : IEcsInitSystem, IEcsRunSystem
 {
+    private readonly EcsFilterInject<Inc<GameLogic.Components.GameplayState>> _gameplay = default;
     private readonly EcsFilterInject<Inc<GameLogic.Components.LineDestroyer>> _destroyer = default;
 
     private readonly EcsSharedInject<SharedData> _shared = default;
@@ -40,6 +41,9 @@ public class LineDestroyerDrawer : IEcsInitSystem, IEcsRunSystem
 
     public void Run(IEcsSystems systems)
     {
+        if (_gameplay.Value.GetEntitiesCount() < 1)
+            return;
+
         _shared.Value.SpriteBatch.Begin();
 
         foreach (var destroyerEntity in _destroyer.Value)

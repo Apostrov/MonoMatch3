@@ -9,6 +9,7 @@ namespace MonoMatch3.Code.DrawLogic.Systems;
 
 public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
 {
+    private readonly EcsFilterInject<Inc<GameLogic.Components.GameplayState>> _gameplay = default;
     private readonly EcsFilterInject<Inc<GameLogic.Components.GamePiece>> _gamePieces = default;
 
     private readonly EcsPoolInject<GameLogic.Components.GamePieceType> _typePool = default;
@@ -46,6 +47,9 @@ public class GamePieceDrawer : IEcsInitSystem, IEcsRunSystem
 
     public void Run(IEcsSystems systems)
     {
+        if(_gameplay.Value.GetEntitiesCount() < 1)
+            return;
+        
         _shared.Value.SpriteBatch.Begin();
 
         foreach (var pieceEntity in _gamePieces.Value)

@@ -8,6 +8,7 @@ namespace MonoMatch3.Code.DrawLogic.Systems;
 
 public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
 {
+    private readonly EcsFilterInject<Inc<GameLogic.Components.GameplayState>> _gameplay = default;
     private readonly EcsSharedInject<SharedData> _shared = default;
 
     private Sprite _backgroundTile;
@@ -23,6 +24,9 @@ public class GameBoardDrawer : IEcsInitSystem, IEcsRunSystem
 
     public void Run(IEcsSystems systems)
     {
+        if(_gameplay.Value.GetEntitiesCount() < 1)
+            return;
+        
         _shared.Value.SpriteBatch.Begin();
 
         for (int row = 0; row < _shared.Value.BoardSize; row++)
