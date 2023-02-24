@@ -94,6 +94,7 @@ namespace MonoMatch3.Code
                 // ui
                 .Add(new UI.Systems.MenuUIDrawer())
                 .Add(new UI.Systems.GameplayUIDrawer())
+                .Add(new UI.Systems.GameEndUIDrawer())
 
                 // init
                 .Inject()
