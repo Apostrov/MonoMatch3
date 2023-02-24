@@ -15,7 +15,7 @@ public class ColorDFS : DFS
 
     protected override bool IsCorrect(int startPieceEntity, int currentPieceEntity)
     {
-        return _typePool.Has(currentPieceEntity) &&
-               _typePool.Get(currentPieceEntity).Type == _typePool.Get(startPieceEntity).Type;
+        return _typePool.Has(startPieceEntity) && _typePool.Has(currentPieceEntity) &&
+               _typePool.Get(startPieceEntity).Type == _typePool.Get(currentPieceEntity).Type;
     }
 }

@@ -57,6 +57,8 @@ public class LineDestroyerFlyProcessing : IEcsRunSystem
 
     private bool IsAlmostSameVector(Vector2 vector1, Vector2 vector2)
     {
-        return Math.Abs(vector1.X - vector2.X) < 0.15f && Math.Abs(vector1.Y - vector2.Y) < 0.15f;
+        var minValue = MathHelper.Max(0.15f,
+            _shared.Value.GameTime.GetElapsedSeconds() * GameConfig.LINE_DESTROYER_FLY_SPEED);
+        return Math.Abs(vector1.X - vector2.X) <= minValue && Math.Abs(vector1.Y - vector2.Y) <= minValue;
     }
 }

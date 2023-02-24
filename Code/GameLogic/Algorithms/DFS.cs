@@ -6,13 +6,13 @@ namespace MonoMatch3.Code.GameLogic.Algorithms;
 
 public abstract class DFS
 {
-    private readonly EcsWorld _world;
-    private readonly EcsPool<GamePiece> _piecePool;
+    protected readonly EcsPool<GamePiece> PiecePool;
+    protected readonly EcsWorld World;
 
     protected DFS(EcsPool<GamePiece> piecePool, EcsWorld world)
     {
-        _world = world;
-        _piecePool = piecePool;
+        World = world;
+        PiecePool = piecePool;
     }
 
     protected abstract bool IsCorrect(int startPieceEntity, int currentPieceEntity);
@@ -22,13 +22,13 @@ public abstract class DFS
     public List<int> Solve(EcsPackedEntity startBlock, EcsPackedEntity[,] board,
         GetNextPosition nextPosition)
     {
-        if (!startBlock.Unpack(_world, out var startBlockEntity) || !IsCorrect(startBlockEntity, startBlockEntity))
+        if (!startBlock.Unpack(World, out var startBlockEntity) || !IsCorrect(startBlockEntity, startBlockEntity))
             return new List<int>();
 
         var collectedEntities = new List<int>();
         var dfsStack = new Stack<PiecePosition>();
         var discovered = new bool[board.GetLength(0), board.GetLength(1)];
-        ref var piece = ref _piecePool.Get(startBlockEntity);
+        ref var piece = ref PiecePool.Get(startBlockEntity);
         dfsStack.Push(piece.BoardPosition);
         while (dfsStack.Count > 0)
         {
@@ -39,7 +39,7 @@ public abstract class DFS
                 continue;
 
             var entityPacked = board[position.Row, position.Column];
-            if (!entityPacked.Unpack(_world, out var entity) || !IsCorrect(startBlockEntity, entity))
+            if (!entityPacked.Unpack(World, out var entity) || !IsCorrect(startBlockEntity, entity))
                 continue;
 
             collectedEntities.Add(entity);
