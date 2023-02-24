@@ -12,12 +12,12 @@ namespace MonoMatch3.Code
     {
         private const int BOARD_SIZE = 8;
 
-        private GraphicsDeviceManager _graphics;
+        private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        private readonly EcsWorld _world;
-        private readonly IEcsSystems _gameSystems;
-        private readonly IEcsSystems _drawSystems;
+        private EcsWorld _world;
+        private IEcsSystems _gameSystems;
+        private IEcsSystems _drawSystems;
         private readonly SharedData _sharedData;
 
         public Match3Game()
@@ -29,23 +29,77 @@ namespace MonoMatch3.Code
             _graphics.PreferredBackBufferHeight = 900;
             _graphics.ApplyChanges();
 
-            _world = new EcsWorld();
             _sharedData = new SharedData
             {
                 GraphicsDevice = GraphicsDevice,
                 Tweener = new Tweener(),
                 BoardSize = BOARD_SIZE
             };
-            _gameSystems = new EcsSystems(_world, _sharedData);
-            _drawSystems = new EcsSystems(_world, _sharedData);
+            EcsInit();
         }
 
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
 
-            _gameSystems
+            CreateGameSystems();
+            base.Initialize();
+        }
 
+        protected override void LoadContent()
+        {
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            // TODO: use this.Content to load your game content here
+            _sharedData.SpriteBatch = _spriteBatch;
+            _sharedData.Background = Content.Load<Texture2D>("background_blur");
+            _sharedData.TilesAtlas = Content.Load<Texture2D>("assets_candy");
+            _sharedData.Font = Content.Load<SpriteFont>("Debug");
+
+            CreateDrawSystems();
+        }
+
+        protected override void UnloadContent()
+        {
+            EcsClean();
+            base.UnloadContent();
+        }
+
+        protected override void Update(GameTime gameTime)
+        {
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+                Keyboard.GetState().IsKeyDown(Keys.Escape))
+                Exit();
+
+            // TODO: Add your update logic here
+            _sharedData.GameTime = gameTime;
+            _gameSystems?.Run();
+            _sharedData.Tweener.Update(gameTime.GetElapsedSeconds());
+
+            base.Update(gameTime);
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.Black);
+
+            // TODO: Add your drawing code here
+            _sharedData.GameTime = gameTime;
+            _drawSystems?.Run();
+
+            base.Draw(gameTime);
+        }
+
+        private void EcsInit()
+        {
+            _world = new EcsWorld();
+            _gameSystems = new EcsSystems(_world, _sharedData);
+            _drawSystems = new EcsSystems(_world, _sharedData);
+        }
+
+        private void CreateGameSystems()
+        {
+            _gameSystems
                 // game logic
                 .Add(new GameLogic.Systems.GameInit())
                 .Add(new GameLogic.Systems.Match3Solver())
@@ -63,25 +117,15 @@ namespace MonoMatch3.Code
 
                 // ui
                 .Add(new UI.Systems.PlayButtonClickedTracker())
-                .Add(new UI.Systems.RestartButtonClickedTracker())
+                .Add(new UI.Systems.RestartButtonClickedTracker(EcsRestart))
 
                 // init
                 .Inject()
                 .Init();
-
-            base.Initialize();
         }
 
-        protected override void LoadContent()
+        private void CreateDrawSystems()
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            // TODO: use this.Content to load your game content here
-            _sharedData.SpriteBatch = _spriteBatch;
-            _sharedData.Background = Content.Load<Texture2D>("background_blur");
-            _sharedData.TilesAtlas = Content.Load<Texture2D>("assets_candy");
-            _sharedData.Font = Content.Load<SpriteFont>("Debug");
-
             _drawSystems
                 // game logic
                 .Add(new GameLogic.Systems.GameBoardInit()) // in draw systems, because it depend on content
@@ -102,38 +146,23 @@ namespace MonoMatch3.Code
                 .Init();
         }
 
-        protected override void UnloadContent()
+        private void EcsClean()
         {
-            _gameSystems.Destroy();
-            _drawSystems.Destroy();
-            _world.Destroy();
-
-            base.UnloadContent();
+            _gameSystems?.Destroy();
+            _gameSystems = null;
+            _drawSystems?.Destroy();
+            _drawSystems = null;
+            _world?.Destroy();
+            _world = null;
         }
 
-        protected override void Update(GameTime gameTime)
+        private void EcsRestart()
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-                Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-
-            // TODO: Add your update logic here
-            _sharedData.GameTime = gameTime;
-            _gameSystems.Run();
-            _sharedData.Tweener.Update(gameTime.GetElapsedSeconds());
-
-            base.Update(gameTime);
-        }
-
-        protected override void Draw(GameTime gameTime)
-        {
-            GraphicsDevice.Clear(Color.Black);
-
-            // TODO: Add your drawing code here
-            _sharedData.GameTime = gameTime;
-            _drawSystems.Run();
-
-            base.Draw(gameTime);
+            _sharedData.Tweener.CancelAll();
+            EcsClean();
+            EcsInit();
+            CreateGameSystems();
+            CreateDrawSystems();
         }
     }
 }
