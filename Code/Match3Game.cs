@@ -60,6 +60,9 @@ namespace MonoMatch3.Code
                 .Add(new GameLogic.Systems.LineDestroyerFlyProcessing())
                 .Add(new GameLogic.Systems.BonusMatchProcessing())
 
+                // ui
+                .Add(new UI.Systems.PlayButtonClickedTracker())
+
                 // init
                 .Inject()
                 .Init();
@@ -86,7 +89,7 @@ namespace MonoMatch3.Code
                 .Add(new DrawLogic.Systems.GameBoardDrawer())
                 .Add(new DrawLogic.Systems.GamePieceDrawer())
                 .Add(new DrawLogic.Systems.LineDestroyerDrawer())
-                
+
                 // ui
                 .Add(new UI.Systems.MenuUIDrawer())
 

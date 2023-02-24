@@ -7,6 +7,7 @@ namespace MonoMatch3.Code.GameLogic.Systems;
 
 public class Match3Solver : IEcsInitSystem, IEcsRunSystem
 {
+    private readonly EcsFilterInject<Inc<Components.GameplayState>> _gameplay = default;
     private readonly EcsFilterInject<Inc<Components.GameBoard>> _gameBoard = default;
     private readonly EcsFilterInject<Inc<Components.SolvePieceMatch>> _solveMatch = default;
 
@@ -30,7 +31,7 @@ public class Match3Solver : IEcsInitSystem, IEcsRunSystem
 
     public void Run(IEcsSystems systems)
     {
-        if (_solveMatch.Value.GetEntitiesCount() < 1)
+        if (_solveMatch.Value.GetEntitiesCount() < 1 || _gameplay.Value.GetEntitiesCount() < 1)
             return;
 
         foreach (var boardEntity in _gameBoard.Value)

@@ -1,6 +1,7 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 
 namespace MonoMatch3.Code.UI.Systems;
@@ -8,16 +9,35 @@ namespace MonoMatch3.Code.UI.Systems;
 public class MenuUIDrawer : IEcsInitSystem, IEcsRunSystem
 {
     private readonly EcsFilterInject<Inc<GameLogic.Components.GameStartState>> _gameStart = default;
+
+    private readonly EcsPoolInject<Components.PlayButton> _playButtonPool = default;
+
+    private readonly EcsWorldInject _world = default;
     private readonly EcsSharedInject<SharedData> _shared = default;
 
-    private Vector2 _center;
-    private Size2 _buttonSize;
+    private Model.Button _playButton;
+    private Model.Label _gameNameLabel;
 
     public void Init(IEcsSystems systems)
     {
-        int centerX = _shared.Value.GraphicsDevice.Viewport.Width / 2;
-        int centerY = _shared.Value.GraphicsDevice.Viewport.Height / 2;
-        _center = new Vector2(centerX, centerY);
+        var graphicsDevice = _shared.Value.GraphicsDevice;
+
+        // Button
+        var buttonText = "Play";
+        var buttonSize = new Vector2(250f, 75f);
+        var buttonPosition = new Vector2(graphicsDevice.Viewport.Width / 2f - buttonSize.X / 2f,
+            graphicsDevice.Viewport.Height / 2f - buttonSize.Y / 2f + 100f);
+        var buttonRect = new Rectangle(buttonPosition.ToPoint(), buttonSize.ToPoint());
+        var textPosition = new Vector2(buttonRect.X + buttonRect.Width / 2f, buttonRect.Y + buttonRect.Height / 2f);
+        _playButton = new Model.Button(buttonText, buttonRect, textPosition);
+        _playButtonPool.Value.Add(_world.Value.NewEntity()).Button = _playButton;
+
+        // Label
+        var labelText = "MonoMatch3";
+        var labelPosition =
+            new Vector2(graphicsDevice.Viewport.Width / 2f - _shared.Value.Font.MeasureString(labelText).X / 2f,
+                graphicsDevice.Viewport.Height / 2f - buttonSize.Y / 2f - 100f);
+        _gameNameLabel = new Model.Label(labelText, labelPosition);
     }
 
     public void Run(IEcsSystems systems)
@@ -27,9 +47,11 @@ public class MenuUIDrawer : IEcsInitSystem, IEcsRunSystem
 
         _shared.Value.SpriteBatch.Begin();
 
-        _shared.Value.SpriteBatch.DrawRectangle(_center + new Vector2(-250f, 0f), new Size2(500f, 100f), Color.Black);
-        _shared.Value.SpriteBatch.DrawString(_shared.Value.Font, $"MonoMatch3", _center + new Vector2(0f, -100f),
+        _shared.Value.SpriteBatch.DrawString(_shared.Value.Font, _gameNameLabel.Text, _gameNameLabel.Position,
             Color.Black);
+        _shared.Value.SpriteBatch.DrawRectangle(_playButton.Bounds, Color.Black);
+        _shared.Value.SpriteBatch.DrawString(_shared.Value.Font, _playButton.Text, _playButton.TextPosition,
+            Color.Black, 0f, _shared.Value.Font.MeasureString(_playButton.Text) / 2f, 1f, SpriteEffects.None, 0f);
 
         _shared.Value.SpriteBatch.End();
     }
