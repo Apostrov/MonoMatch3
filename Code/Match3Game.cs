@@ -63,6 +63,7 @@ namespace MonoMatch3.Code
 
                 // ui
                 .Add(new UI.Systems.PlayButtonClickedTracker())
+                .Add(new UI.Systems.RestartButtonClickedTracker())
 
                 // init
                 .Inject()
